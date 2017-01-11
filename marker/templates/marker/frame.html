@@ -1,0 +1,73 @@
+{% load static %}
+{% load marker_extra %}
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="{% static 'marker/jquery.hotkeys.js' %}"></script>
+  <script src="{% static 'marker/marker.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'marker/frame.css' %}" />
+
+  <script type/"text/javascript">
+  var frame_number = "{{frame_number}}";
+  var frame_str = Array(9 - frame_number.toString().length).join('0') + frame_number;
+  var cams = "{{cams|safe}}";
+  </script>
+</head>
+<body>
+  {% include "includes/navbar.html" %}
+
+  {% csrf_token %}
+
+  <div class="container-fluid">
+    <ul class="row" id="my-row">
+      <div class="col-sm-12 btn-group">
+        <div id="loader" class="row col-sm-12"><div class="loadersmall pull-left"></div>
+        <strong class="pull-left" style="color:grey;margin-top:5px;margin-left:10px;">Loading ... please wait until this text disappear</strong></div>        <button class="btn btn-primary col-sm-2" onclick="changeFrame('prev',1)">Previous frame</button>
+        <button class="btn btn-success col-sm-2" onclick="save();">Save labels</button>
+        <button class="btn btn-info col-sm-2" onclick="load();">Load labels</button>
+        <div class="btn-group" role="group">
+          <button type="button" class="btn btn-warning dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Load other labels<span class="caret"></span>
+          </button>
+          <ul class="dropdown-menu">
+            <li><a href="#" onclick="load_prev();">Load previous labels</a></li>
+            <li><a href="#" data-toggle="modal" data-target="#loadModal">Other saved file</a></li>
+            <!-- <li><a onclick="load_frame();">Other saved file</a></li> -->
+          </ul>
+        </div>
+        <button class="btn btn-danger col-sm-2" onclick="clean();">Clear all</button>
+        <button class="btn btn-primary col-sm-2"onclick="changeFrame('next',1)">Next frame</button>
+      </div>
+    </ul>
+    <div class="row col-sm-12">
+
+      <ul class="row" id="ul1">
+        <canvas id='canv1' width="1920" height="1080" data-toggle="tooltip" title="Camera 1" class="img col-sm-4"></canvas>
+        <canvas id='canv2' width="1920" height="1080" data-toggle="tooltip" title="Camera 2" class="img col-sm-4"></canvas>
+        <canvas id='canv3' width="1920" height="1080" data-toggle="tooltip" title="Camera 3" class="img col-sm-4"></canvas>
+      </ul>
+      <ul class="row" id="ul2">
+        <canvas id='canv4' width="1920" height="1080" data-toggle="tooltip" title="Camera 4" class="img col-sm-4"></canvas>
+        <canvas id='canv5' width="1920" height="1080" data-toggle="tooltip" title="Camera 5" class="img col-sm-4"></canvas>
+        <canvas id='canv6' width="1920" height="1080" data-toggle="tooltip" title="Camera 6" class="img col-sm-4"></canvas>
+      </ul>
+    </div>
+    <div class="row col-sm-12">
+      <ul class="row" id="ul3">
+        <canvas id='canv7' width="1920" height="1080" data-toggle="tooltip" title="Camera 7" class="img col-sm-4"></canvas>
+        <div class="col-sm-4"> {% include "includes/side_menu.html" %}</div>
+        <div class="col-sm-4"> {% include "includes/controller.html" %}</div>
+      </ul>
+    </div>
+  </div>
+  {% include "includes/footer.html" %}
+  {% include "includes/load.html" %}
+
+</body>
+
+</html>

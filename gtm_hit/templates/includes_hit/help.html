@@ -1,0 +1,82 @@
+{% load static %}
+{% load gtm_hit_extra %}
+
+<!-- Modal -->
+<div class="modal fade" id="myModal" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Help</h4>
+      </div>
+      <div class="modal-body col-sm-12">
+        <ul class="nav nav-tabs" id="tabContent">
+          <li class="active"><a href="#task_h" data-toggle="tab">Task description</a></li>
+          <li><a href="#keys_h" onclick="tab1()" data-toggle="tab">Keyboard shortcuts</a></li>
+          <li><a href="#ex1_h" onclick="tab2()"  data-toggle="tab">Example 1</a></li>
+          <li><a href="#ex2_h" onclick="tab3()"  data-toggle="tab">Example 2</a></li>
+        </ul>
+        <div class="tab-content">
+          <div class="tab-pane active" id="task_h">
+            <h3>Your task</h3>
+            <p style="text-align: justify;">As previously mentionned, you will be asked to label images, i.e. to place bounding boxes around people. <br><br>You will see 7 images at the same time which corresponds to multiple views of a scene.
+              Try to put bounding boxes around all the people you can (some of them are not in the ground area, don't worry about them).
+            <br><br>After having labeled a frame, the bounding boxes you placed will stay on the next frame and turn yellow.
+              Since the people do not move a lot between two consecutive frames, you will only have to switch between the bounding boxes ( with <kbd>tab</kbd> ) and adjust their position using the arrow keys.
+            <br>The task will end once you have labeled 10 frames.
+            <br><br>Use your left click to place a bounding box on an image. The bottom of the bounding box will be centered on the point you click on, so aim at the feets.
+            <br><br>The red dot at the bottom of the bouding box corresponds to a point on the ground. To correctly place a bounding box, this point should be placed at the center of the person, on the ground. <small>(See <strong><a href="#ex1" onclick="tab2()"  data-toggle="tab">Example 1</a></strong>)</small>
+            <br><br>Use the arrow keys to move a bounding box on the images. Each view has a different orientation. Look at the small keys on the top left of each image to know in which direction goes each arrow. <small>(See <strong><a href="#ex2" onclick="tab3()"  data-toggle="tab">Example 2</a></strong>)</small>
+            <br><br>Take a look at all the tutorial tabs before starting. The second example contains and summarizes everyting you need to know</p>
+            <center><small>Note: Since accuracy is very important, do not hesitate to use the <kbd>z</kbd> key to zoom on the selected bounding box.</small></center>
+          </div>
+
+          <div class="tab-pane" id="keys_h">
+            <center>
+            <br>
+            <p><strong><kbd>Left click</kbd></strong><small> (on an image) </small><strong>:</strong><small> place a bounding box.</small></p>
+            <p><strong><kbd>Arrows</kbd></strong> : <small>move the selected bounding box.</small></p>
+            <p><strong><kbd>z</kbd></strong> : <small>zoom on the selected bounding box (press again to zoom out).</small></p>
+            <p><strong><kbd>Backspace</kbd></strong> : <small>remove the selected bounding box.</small></p>
+            <p><strong><kbd>Space</kbd></strong> / <strong><kbd>Tab</kbd></strong> : <small>select the next/previous the bounding box.</small></p>
+            <p><strong><kbd>e</kbd></strong> : <small>validate the placement of a <kbd style="color:yellow">yellow</kbd> bounding box.</small></p>
+            <p><strong><kbd>h</kbd></strong> : <small>hide/show the orientation helper.</small></p>
+            <p><strong><kbd>t</kbd></strong> : <small>hide/show the ground area limits.</small></p>
+            <p><strong><kbd style="color:cyan">Cyan</kbd> box</strong> : selected bounding box</p>
+            <p><strong><kbd>White</kbd> box</strong> : standard bounding box</p>
+            <p><strong><kbd style="color:yellow">Yellow</kbd> box</strong> : Unvalidated bounding box</p>
+            <p class="text-danger">The bounding box should surround the person on all images it appears. (see Example 1 tab)</p>
+            </center>
+          </div>
+
+          <div class="tab-pane" id="ex1_h">
+            <br>
+            <center><p class="text-danger">The bounding box should surround the person on all images it appears.</p>
+
+            <p><strong>Good</strong></p>
+            <p class="small">All the bounding boxes sourround the lady</p>
+            <img class="img-responsive" src="{% static 'gtm_hit/images/good.png' %}"></img>
+            <p><strong>Bad</strong></p>
+            <p class="small">The box seems correctly placed on the top right image, but not in the other images.
+              In this case, you have to adjust the position using the <kbd>arrows</kbd> to obtain the results seen on the "Good" example</p>
+              <img class="img-responsive" src="{% static 'gtm_hit/images/bad.png' %}"></img></center>
+
+            </div>
+
+            <div class="tab-pane" id="ex2_h">
+              <br>
+              <center><p class="text-danger">The bounding box should surround the person on all images it appears.</p>
+
+              <p><small>Note that the orientation helper and the blue arrows have another orientation on every frame since the angle changes.</small></p>
+              <img class="img-responsive" src="{% static 'gtm_hit/images/ex2.png' %}"></img></center>
+              </div>
+          </div>
+      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>

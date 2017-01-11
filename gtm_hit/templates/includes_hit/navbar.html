@@ -1,0 +1,17 @@
+<nav class="navbar navbar-inverse">
+    <div class="navbar-header">
+      <a class="navbar-brand">GT MARKER</a>
+      <small class="navbar-text"><div class="text-danger">
+        All the labeled frames will be reviewed. Submission with incomplete or inaccurate labeling will be rejected
+      </div></small>
+
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>&nbsp;&nbsp;Logout</a></li>
+      {% endif %}
+      <li><a href="#"data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-question-sign"></span>&nbsp;&nbsp;Help&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+    </ul>
+
+</nav>
+{% include "includes_hit/help.html" %}

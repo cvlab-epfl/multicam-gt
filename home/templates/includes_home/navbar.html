@@ -1,0 +1,11 @@
+<nav class="navbar navbar-inverse">
+    <div class="navbar-header">
+      <a href="/" class="navbar-brand">GT MARKER</a>
+    </div>
+    <ul class="nav navbar-nav navbar-right">
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>&nbsp;&nbsp;Logout</a></li>
+      {% endif %}
+    </ul>
+
+</nav>

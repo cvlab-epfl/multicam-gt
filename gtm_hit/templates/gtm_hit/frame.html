@@ -1,0 +1,65 @@
+{% load static %}
+{% load gtm_hit_extra %}
+
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <script src="{% static 'gtm_hit/jquery.hotkeys.js' %}"></script>
+  <script src="{% static 'gtm_hit/marker.js' %}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'gtm_hit/frame.css' %}" />
+
+  <script type="text/javascript">
+  var frame_number = "{{frame_number}}";
+  var workerID = "{{workerID}}";
+  var frame_str = Array(9 - frame_number.toString().length).join('0') + frame_number;
+  var path = "{{path}}";
+  var cams = "{{cams|safe}}";
+  var nblabeled = "{{nblabeled}}";
+  </script>
+</head>
+<body>
+  {% include "includes_hit/navbar.html" %}
+
+  {% csrf_token %}
+
+  <div class="container-fluid">
+    <ul class="row" id="my-row">
+      <div class="col-sm-12">
+        <div id="loader"><div class="loadersmall pull-left"></div>
+        <strong class="pull-left" style="color:grey;margin-top:5px;margin-left:10px;">Loading ... please wait until this text disappear</strong></div>
+        <ul class="pull-right">
+          <strong id="frameID">Frame ID: {{frame_number}}&nbsp;&nbsp;</strong>
+          <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('next',5)">Next frame</a>
+        </ul>
+
+      </div>
+    </ul>
+    <div class="row col-sm-12">
+
+      <ul class="row" id="ul1">
+        <canvas id='canv1' width="1920" height="1080" data-toggle="tooltip" title="Camera 1" class="img col-sm-4"></canvas>
+        <canvas id='canv2' width="1920" height="1080" data-toggle="tooltip" title="Camera 2" class="img col-sm-4"></canvas>
+        <canvas id='canv3' width="1920" height="1080" data-toggle="tooltip" title="Camera 3" class="img col-sm-4"></canvas>
+      </ul>
+      <ul class="row" id="ul2">
+        <canvas id='canv4' width="1920" height="1080" data-toggle="tooltip" title="Camera 4" class="img col-sm-4"></canvas>
+        <canvas id='canv5' width="1920" height="1080" data-toggle="tooltip" title="Camera 5" class="img col-sm-4"></canvas>
+        <canvas id='canv6' width="1920" height="1080" data-toggle="tooltip" title="Camera 6" class="img col-sm-4"></canvas>
+      </ul>
+    </div>
+    <div class="row col-sm-12">
+      <ul class="row" id="ul3">
+        <canvas id='canv7' width="1920" height="1080" data-toggle="tooltip" title="Camera 7" class="img col-sm-4"></canvas>
+        <div class="col-sm-4"> {% include "includes_hit/side_menu.html" %}</div>
+        <div class="col-sm-4"> {% include "includes_hit/controller.html" %}</div>
+      </ul>
+    </div>
+  </div>
+  {% include "includes_hit/footer.html" %}
+</body>
+
+</html>

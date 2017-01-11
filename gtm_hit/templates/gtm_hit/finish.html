@@ -1,0 +1,59 @@
+{% load static %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'gtm_hit/index.css' %}" />
+  <style>#wi{
+    color: red;
+    }
+    </style>
+
+    <script type="text/javascript">
+    var workerID = "{{workerID}}";
+    window.onload = function() {
+      $.ajax({
+        method: "POST",
+        url: 'processFinish',
+        data: {
+          csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+          workerID: workerID,
+        },
+        success: function(msg) {
+          console.log(msg);
+        }
+      });
+    }
+    </script>
+</head>
+<body>
+  {% include "includes_hit/navbar.html" %}
+  {% csrf_token %}
+   <div class="intro-header">
+       <div class="container">
+           <div class="row">
+               <div class="col-sm-12">
+                   <div class="intro-message">
+                       <h1>Ground truth marker</h1>
+                       <hr class="intro-divider">
+                       <h3>Thank you for your participation!</h3>
+                       <p>We hope you enjoyed the task</p>
+                       <p>Please copy the following validation code and paste it in the key field of the HIT page</p>
+
+                       <hr class="intro-divider">
+                       <p> Validation code: {{validation_code}} </p>
+                   </div>
+               </div>
+           </div>
+
+       </div>
+
+   </div>
+   {% include "includes_hit/footer.html" %}
+
+</body>
+
+</html>

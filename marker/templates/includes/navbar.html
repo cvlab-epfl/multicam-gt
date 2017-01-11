@@ -1,0 +1,23 @@
+<nav class="navbar navbar-inverse">
+    <div class="navbar-header">
+      <a href="/" class="navbar-brand">GT MARKER</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Download annotations <span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                  <li><a href="{% url 'download' %}">Frame annotations</a></li>
+                  <li><a href="{% url 'downloadwk' %}">Worker's annotations</a></li>
+                </ul>
+    </li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+        <li><a id="frameID"></a></li>
+      {% if user.is_authenticated %}
+        <li><a href="{% url 'logout' %}"><span class="glyphicon glyphicon-log-out"></span>&nbsp;&nbsp;Logout</a></li>
+      {% endif %}
+      <li><a href="#"data-toggle="modal" data-target="#myModal"><span class="glyphicon glyphicon-question-sign"></span>&nbsp;&nbsp;Help&nbsp;&nbsp;&nbsp;&nbsp;</a></li>
+    </ul>
+
+</nav>
+{% include "includes/help.html" %}

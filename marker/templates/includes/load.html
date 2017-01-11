@@ -1,0 +1,41 @@
+{% load static %}
+{% load marker_extra %}
+
+<!-- Modal -->
+<div class="modal fade" id="loadModal" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Choose a save file to load</h4>
+      </div>
+      <div class="modal-body col-sm-12">
+        {% csrf_token %}
+        <div class="col-sm-12">
+
+          <ul class="list-inline">
+
+            <div class="well">
+              <p><strong>Saved files</strong></p>
+              <hr class="intro-divider">
+
+              <div class="pre-scrollable">
+                {% for col in files|columns:"2" %}
+                  {% for f in col %}
+                  <div class="col-sm-6">
+                    <button id="{{f}}" class="btn col-sm-12" onclick="load_file('{{f}}')"><strong>{{f}}</strong></button>
+                  </div>
+                  {% endfor %}
+                {% endfor %}
+              </div>
+            </div>
+        </div>
+      </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>

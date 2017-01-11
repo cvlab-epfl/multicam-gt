@@ -1,0 +1,52 @@
+{% load static %}
+{% load gtm_hit_extra %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'marker/index.css' %}" />
+  <style>#wi{
+    color: red;
+    }
+    </style>
+  </head>
+<body>
+  {% include "includes/navbar.html" %}
+  {% csrf_token %}
+   <div class="intro-header">
+       <div class="container">
+           <div class="row">
+               <div class="col-sm-12">
+                   <div class="intro-message">
+                       <h1>Ground truth marker</h1>
+                       <hr class="intro-divider">
+                       <h3>Login</h3>
+                       <p>Please log in to access this part of our website!</p>
+
+                       <hr class="intro-divider">
+                         <form id="login_form" method="post" action="/marker/login/">
+                           {% csrf_token %}
+                           Username: <input type="text" name="username" value="" size="50" />
+                           <br></br>
+                           Password : <input type="password" name="password" value="" size="50" />
+                           <br></br>
+
+                         <input type="submit" value="Log in" />
+                         </form>
+                   </div>
+               </div>
+           </div>
+       </div>
+   </div>
+   {% include "includes_home/footer.html" %}
+
+   {% include "includes/tuto.html" %}
+
+
+
+</body>
+
+</html>

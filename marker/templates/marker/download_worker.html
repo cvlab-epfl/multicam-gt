@@ -1,0 +1,72 @@
+{% load static %}
+{% load marker_extra %}
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'marker/index.css' %}" />
+
+</head>
+<body>
+  {% include "includes/navbar.html" %}
+  <div class="intro-header">
+    <div class="container">
+      <div class="row">
+        <div class="col-sm-12">
+          <div class="intro-message">
+            <h1>Ground truth marker</h1>
+            <hr class="intro-divider">
+            <h3>Download</h3>
+            <p>Please select the annotations you want to download</p>
+
+            <form class="form-horizontal" action="{% url 'download' %}" method="post">
+              {% csrf_token %}
+              <div class="col-lg-6 col-lg-offset-3">
+
+                <ul class="list-inline">
+
+                  <div class="well">
+                    <p><strong>Saved files</strong></p>
+                    <hr class="intro-divider">
+
+                    <div class="pre-scrollable">
+                      {% for col in files|columns:"2" %}
+                        {% for f in col %}
+                        <div class="checkbox col-sm-6">
+                          {% if f in todl %}
+                          <label><input type="checkbox" name="{{f}}" value="" checked="checked"><strong>{{f}}</strong></label>
+                          {% else %}
+                          <label><input type="checkbox" name="{{f}}" value=""><strong>{{f}}</strong></label>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                      {% endfor %}
+
+                    </div>
+                  </div>
+                  <li>
+                    <button class="btn btn-primary btn-lg" name="dlselect" type="submit"><span class="button-name">Download selected</span></button>
+                  </li>
+                  <li>
+                    <button class="btn btn-primary btn-lg" name="dlall" type="submit"><span class="button-name">Download all</span></button>
+                  </li>
+                </ul>
+              </div>
+
+            </form>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  {% include "includes/footer.html" %}
+</body>
+
+</html>
