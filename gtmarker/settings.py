@@ -212,7 +212,7 @@ except FileNotFoundError:
         print("Error: Rectangle file not found")
 
 VALIDATIONCODES = []
-STARTFRAME = 0
+STARTFRAME = 550
 NBFRAMES = 18000
 UNLABELED = list(range(0,NBFRAMES,10))
 LASTLOADED = 990
