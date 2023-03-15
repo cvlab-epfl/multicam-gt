@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from pathlib import Path
+from gtm_hit.misc.wildtrack_calib import load_calibrations
+from gtm_hit.misc.utils import read_calibs, get_frame_size
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,16 +26,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '%z1g%^3%nf-k3sf$i^qra_d*0m4745c57f&(su(2=&nuwt#=z1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 #ALLOWED_HOSTS = ['127.0.0.1']
-ALLOWED_HOSTS = ['pedestriantag.epfl.ch']
+ALLOWED_HOSTS = ['10.90.43.13', 'pedestriantag.epfl.ch','localhost','127.0.0.1', '0.0.0.0']
 
 # Application definition
 
 INSTALLED_APPS = [
     'marker.apps.MarkerConfig',
     'gtm_hit.apps.Gtm_hitConfig',
+    #'gtm_hit',
     'home',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -43,7 +47,7 @@ INSTALLED_APPS = [
     'bootstrapform',
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -105,17 +109,23 @@ WSGI_APPLICATION = 'gtmarker.wsgi.application'
 #         'PORT': '',
 #     }
 # }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'pedestriantag',
-        'USER': 'pedestriantag',
-        'PASSWORD': 'lAzyLift96',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'mydatabase', # This is where you put the name of the db file. 
+                 # If one doesn't exist, it will be created at migration time.
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'pedestriantag',
+#         'USER': 'pedestriantag',
+#         'PASSWORD': 'lAzyLift96',
+#         'HOST': 'localhost',
+#         'PORT': '',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -153,7 +163,18 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = '/static/'
+print(BASE_DIR) 
+STATIC_URL = 'static/'
+
+#STATICFILES_DIRS = (os.path.join(BASE_DIR, 'gtm_hit'),)
+
+# Additional locations of static files
+#STATICFILES_DIRS = [
+#location of your application, should not be public web accessible 
+# os.path.join(BASE_DIR, '/home/static/'),
+# os.path.join(BASE_DIR, '/gtm_him/static/'),
+# os.path.join(BASE_DIR, '/marker/static/')
+#]
 
 SAVES = '/labels/'
 
@@ -174,52 +195,57 @@ DELTA_SEARCH = 5
 
 #TEMPLATES[0]['OPTIONS']['context_processors'].append("marker.context_processors.rectangles_processor")
 
-try:
-    rectangles_file = './marker/static/marker/rectangles.pom'#480x1440.pom'
-    f_rect = open(rectangles_file, 'r')
-    lines = f_rect.readlines()
-    f_rect.close()
-    if lines[0].split()[0] != "WIDTH":
-        messagebox.showerror("Error","Incorrect file header")
-    else:
-        NB_WIDTH = int(lines[2].split()[1])
-        NB_HEIGHT = int(lines[3].split()[1])
-        NB_RECT = NB_WIDTH * NB_HEIGHT
-        MAN_RAY = float(lines[4].split()[1])
-        MAN_HEIGHT = float(lines[5].split()[1])
-        REDUCTION = float(lines[6].split()[1])
-        NB_CAMS = int(lines[9].split()[1])
-        incr = 0
-        test = []
-        FIND_RECT = [[{} for _ in range(2913)] for _ in range(NB_CAMS)]
-        RECT = [{} for _ in range(NB_CAMS)]
-        for line in lines[10:]:
-            l = line.split()
-            cam = int(l[1])
-            id_rect = int(l[2])
-            if l[3] != "notvisible":
-                a, b, c, d = l[3:]
-                a = int(a)
-                b = int(b)
-                c = int(c)
-                d = int(d)
-                ratio = 180/(d-b)
-                if d < 5000:
-                    if abs(c - a) < abs(d - b):
-                        RECT[cam][id_rect] = (a, b, c, d,ratio)
-                        FIND_RECT[cam][d][(a + c) // 2] = id_rect
-except FileNotFoundError:
-        print("Error: Rectangle file not found")
+# try:
+#     rectangles_file = './marker/static/marker/rectangles.pom'#480x1440.pom'
+#     f_rect = open(rectangles_file, 'r')
+#     lines = f_rect.readlines()
+#     f_rect.close()
+#     if lines[0].split()[0] != "WIDTH":
+#         messagebox.showerror("Error","Incorrect file header")
+#     else:
+#         NB_WIDTH = int(lines[2].split()[1])
+#         NB_HEIGHT = int(lines[3].split()[1])
+#         NB_RECT = NB_WIDTH * NB_HEIGHT
+#         MAN_RAY = float(lines[4].split()[1])
+#         MAN_HEIGHT = float(lines[5].split()[1])
+#         REDUCTION = float(lines[6].split()[1])
+#         NB_CAMS = int(lines[9].split()[1])
+#         incr = 0
+#         test = []
+#         FIND_RECT = [[{} for _ in range(2913)] for _ in range(NB_CAMS)]
+#         RECT = [{} for _ in range(NB_CAMS)]
+#         for line in lines[10:]:
+#             l = line.split()
+#             cam = int(l[1])
+#             id_rect = int(l[2])
+#             if l[3] != "notvisible":
+#                 a, b, c, d = l[3:]
+#                 a = int(a)
+#                 b = int(b)
+#                 c = int(c)
+#                 d = int(d)
+#                 ratio = 180/(d-b)
+#                 if d < 5000:
+#                     if abs(c - a) < abs(d - b):
+#                         RECT[cam][id_rect] = (a, b, c, d,ratio)
+#                         FIND_RECT[cam][d][(a + c) // 2] = id_rect
+#         # NB_CAMS = 4
+# except FileNotFoundError:
+#         print("Error: Rectangle file not found")
 
 VALIDATIONCODES = []
-STARTFRAME = 550
-NBFRAMES = 18000
-UNLABELED = list(range(0,NBFRAMES,10))
-LASTLOADED = 990
+STARTFRAME = 0
+NBFRAMES = 5000
+LASTLOADED = 0
+INCREMENT = 12
+UNLABELED = list(range(0,NBFRAMES,INCREMENT))
 
-SERVER_PATH = "/Volumes/cvlabdata1/cvlab/datasets_people_tracking/ETH/day_2/"
-CAMS = []
-for i in range(4):
-    CAMS.append("cvlab_camera" + str(i+1))
-for i in range(3):
-    CAMS.append("idiap_camera" + str(i+1))
+DSETNAME = "rayon4"
+CAMS = ["cam1","cam2","cam3","cam4"]
+FRAME_SIZES = get_frame_size(DSETNAME, CAMS, STARTFRAME)
+CALIBS = read_calibs(Path("./gtm_hit/static/gtm_hit/dset/"+DSETNAME+"/calibrations/full_calibration.json"), CAMS)
+NB_CAMS = len(CAMS)
+
+HEIGHT = 180
+RADIUS = 30 
+STEPL = 10

@@ -10,15 +10,19 @@
   <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
   <script src="{% static 'gtm_hit/jquery.hotkeys.js' %}"></script>
   <script src="{% static 'gtm_hit/marker.js' %}"></script>
-  <link rel="stylesheet" type="text/css" href="{% static 'gtm_hit/frame.css' %}" />
+  <!-- <link rel="stylesheet" type="text/css" href="{% static 'gtm_hit/frame.css' %}" /> -->
 
   <script type="text/javascript">
   var frame_number = "{{frame_number}}";
   var workerID = "{{workerID}}";
   var frame_str = Array(9 - frame_number.toString().length).join('0') + frame_number;
-  var path = "{{path}}";
   var cams = "{{cams|safe}}";
+  var nb_cams = "{{nb_cams}}"
   var nblabeled = "{{nblabeled}}";
+  var frame_inc = "{{frame_inc}}";
+  var dset_name = "{{dset_name}}";
+  var frame_size = "{{frame_size}}";
+  frame_size = frame_size.substring(1,frame_size.length-1).split(",");
   </script>
 </head>
 <body>
@@ -33,7 +37,7 @@
         <strong class="pull-left" style="color:grey;margin-top:5px;margin-left:10px;">Loading ... please wait until this text disappear</strong></div>
         <ul class="pull-right">
           <strong id="frameID">Frame ID: {{frame_number}}&nbsp;&nbsp;</strong>
-          <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('next',5)">Next frame</a>
+          <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('next',frame_inc)">Next frame</a>
         </ul>
 
       </div>
@@ -59,6 +63,13 @@
       </ul>
     </div>
   </div>
+  <script>
+    for (let i = 1; i < (nb_cams+1); i++) {
+      document.getElementById('canv'+i).width = frame_size[(i-1)*2];
+      document.getElementById('canv'+i).height = frame_size[(i-1)*2+1];
+    }
+ </script>
+
   {% include "includes_hit/footer.html" %}
 </body>
 

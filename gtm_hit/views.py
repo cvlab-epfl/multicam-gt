@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
+from curses.textpad import rectangle
 from django.shortcuts import get_object_or_404,render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.template.loader import render_to_string
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core import serializers
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.views import generic
 from django.utils import timezone
 from django.conf import settings
@@ -17,18 +18,23 @@ import os
 import random as rand
 from threading import Thread
 
+import random
+import numpy as np
+from gtm_hit.misc import geometry
+from gtm_hit.misc.utils import convert_rect_to_dict
+
 def requestID(request):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     if request.method == "POST":
         if 'wID' in request.POST:
             workerID = request.POST['wID']
             pattern = re.compile("^[A-Z0-9]+$")
             if pattern.match(workerID):
                 return redirect("/gtm_hit/"+workerID+"/processInit")
-    return render(request, 'gtm_hit/requestID.html',{},context)
+    return render(request, 'gtm_hit/requestID.html',context)
 
 def processInit(request, workerID):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     try:
         w = Worker.objects.get(pk = workerID)
         if w.state == -1:
@@ -39,12 +45,12 @@ def processInit(request, workerID):
         return redirect("/gtm_hit/"+workerID)
 
 def index(request,workerID):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     try:
         w = Worker.objects.get(pk = workerID)
         if w.state != 0:
             return redirect("/gtm_hit/"+workerID)
-        return render(request, 'gtm_hit/index.html',{'workerID' : workerID},context)
+        return render(request, 'gtm_hit/index.html',{'workerID' : workerID, **context})
 
     except Worker.DoesNotExist:
         return redirect("/gtm_hit/"+workerID)
@@ -103,7 +109,7 @@ def dispatch(request,workerID):
         #return render(request, 'gtm_hit/index.html',{'workerID' : workerID},context)
 
 def frame(request,workerID):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     try:
         w = Worker.objects.get(pk = workerID)
         if w.state != 1:
@@ -113,7 +119,7 @@ def frame(request,workerID):
             w.save()
         frame_number = w.frameNB
         nblabeled = w.frame_labeled
-        return render(request, 'gtm_hit/frame.html',{'frame_number': frame_number, 'workerID': workerID,'cams': settings.CAMS, 'path': settings.SERVER_PATH, 'nblabeled' : nblabeled},context)
+        return render(request, 'gtm_hit/frame.html',{'dset_name':settings.DSETNAME, 'frame_number': frame_number, 'frame_inc':settings.INCREMENT, 'workerID': workerID,'cams': settings.CAMS, 'frame_size':settings.FRAME_SIZES, 'nb_cams':settings.NB_CAMS, 'nblabeled' : nblabeled, **context})
     except Worker.DoesNotExist:
         return redirect("/gtm_hit/"+workerID)
 
@@ -121,7 +127,7 @@ def processFrame(request,workerID):
     context = RequestContext(request)
     try:
         w = Worker.objects.get(pk = workerID)
-        if w.state == 1 and w.frame_labeled >= 9:
+        if w.state == 1 and w.frame_labeled >= 500:
             w.state = 2
             timelist = w.getTimeList()
             timelist.append(timezone.now().isoformat())
@@ -132,7 +138,7 @@ def processFrame(request,workerID):
         return redirect("/gtm_hit/"+workerID)
 
 def finish(request,workerID):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     try:
         w = Worker.objects.get(pk = workerID)
         if w.state == 2:
@@ -142,72 +148,105 @@ def finish(request,workerID):
                 settings.UNLABELED.remove(startframe)
             except ValueError:
                 pass
-            return render(request, 'gtm_hit/finish.html',{'workerID': workerID, 'validation_code': validation_code},context)
+            return render(request, 'gtm_hit/finish.html',{'workerID': workerID, 'validation_code': validation_code, **context})
     except Worker.DoesNotExist:
         return redirect("/gtm_hit/"+workerID)
     return redirect("/gtm_hit/"+workerID)
 
-def click(request):
-    if request.is_ajax():
-        try:
-            x = int(request.POST['x'])
-            y = int(request.POST['y'])
-            cam = request.POST['canv']
-            cam = int(re.findall('\d+',cam)[0]) - 1
-            if 0 <= cam < settings.NB_CAMS:
-                closest = -1
-                vbest = 1000
-                for y_temp in range(y - settings.DELTA_SEARCH, y + settings.DELTA_SEARCH):
-                    if 0 <= y_temp < 1080:
-                        for x_temp in settings.FIND_RECT[cam][y_temp]:
-                            vtemp = abs(y - y_temp) + abs(x - x_temp)
-                            if vtemp < vbest:
-                                vbest, closest = vtemp, settings.FIND_RECT[cam][y_temp][x_temp]
-                if closest != -1:
-                    rects = get_rect(closest)
-                    rect_json = json.dumps(rects)
-                    return HttpResponse(rect_json,content_type="application/json")
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
-            return HttpResponse("OK")
-        except KeyError:
-            return HttpResponse("Error")
-    return HttpResponse("No")
+# def click(request):
+#     if is_ajax(request):
+#         try:
+#             x = int(request.POST['x'])
+#             y = int(request.POST['y'])
+#             cam = request.POST['canv']
+#             cam = int(re.findall('\d+',cam)[0]) - 1
+#             if 0 <= cam < settings.NB_CAMS:
+#                 closest = -1
+#                 vbest = 1000
+#                 for y_temp in range(y - settings.DELTA_SEARCH, y + settings.DELTA_SEARCH):
+#                     if 0 <= y_temp < 1080:
+#                         for x_temp in settings.FIND_RECT[cam][y_temp]:
+#                             vtemp = abs(y - y_temp) + abs(x - x_temp)
+#                             if vtemp < vbest:
+#                                 vbest, closest = vtemp, settings.FIND_RECT[cam][y_temp][x_temp]
+#                 if closest != -1:
+#                     rects = get_rect(closest)
+#                     print(rects)
+#                     rect_json = json.dumps(rects)
+#                     return HttpResponse(rect_json,content_type="application/json")
+
+#             return HttpResponse("OK")
+#         except KeyError:
+#             return HttpResponse("Error")
+#     return HttpResponse("No")
+
+def get_rect_calib(world_point):
+    rectangles = list()
+    rect_id = str(int(world_point[0])) + "_" + str(int(world_point[1])) #random.randint(0,100000)
+    for cam_id in range(settings.NB_CAMS):
+        rectangle = geometry.get_bbox_from_ground_world(world_point, settings.CALIBS[cam_id], settings.HEIGHT, settings.RADIUS)
+        rectangle_as_dict = convert_rect_to_dict(rectangle, cam_id, rect_id, world_point)
+        rectangles.append(rectangle_as_dict)    
+
+    return rectangles
+
+def click(request):
+    if is_ajax(request):
+        # try:
+        x = int(request.POST['x'])
+        y = int(request.POST['y'])
+        cam = request.POST['canv']
+        cam = int(re.findall('\d+',cam)[0]) - 1
+        if 0 <= cam < settings.NB_CAMS:
+            feet2d_h = np.array([[x], [y], [1]])             
+            world_point = geometry.reproject_to_world_ground(feet2d_h, settings.CALIBS[cam].K, settings.CALIBS[cam].R, settings.CALIBS[cam].T)
+            rectangles = get_rect_calib(world_point)
+            rect_json = json.dumps(rectangles)
+            return HttpResponse(rect_json,content_type="application/json")
+
+        return HttpResponse("OK")
+    #     except KeyError:
+    #         return HttpResponse("Error")
+    # return HttpResponse("No")
+
+#[{'rectangleID': 0, 'x1': 702, 'y1': 330, 'x2': 934, 'y2': 855, 'cameraID': 0, 'ratio': array([0.22625544]), 'xMid': 818}, {'rectangleID': 0, 'x1': 1544, 'y1': -17, 'x2': 1465, 'y2': 113, 'cameraID': 1, 'ratio': array([-0.16592601]), 'xMid': 1505}, {'rectangleID': 0, 'x1': 444, 'y1': 143, 'x2': 366, 'y2': 328, 'cameraID': 2, 'ratio': array([-0.23407506]), 'xMid': 405}, {'rectangleID': 0, 'x1': 1758, 'y1': 320, 'x2': 1952, 'y2': 942, 'cameraID': 3, 'ratio': array([0.31964897]), 'xMid': 1855}, {'rectangleID': 0, 'x1': 2173, 'y1': 192, 'x2': 2019, 'y2': 447, 'cameraID': 4, 'ratio': array([-0.1661232]), 'xMid': 2096}, {'rectangleID': 0, 'x1': 1271, 'y1': 162, 'x2': 1376, 'y2': 411, 'cameraID': 5, 'ratio': array([0.23706647]), 'xMid': 1323}, {'rectangleID': 0, 'x1': -828, 'y1': 328, 'x2': -805, 'y2': 1078, 'cameraID': 6, 'ratio': array([3.178409]), 'xMid': -817}]
+
+#[{'rectangleID': 161180, 'x1': 915, 'y1': 343, 'x2': 1053, 'y2': 840, 'cameraID': 0, 'ratio': 0.36217303822937624, 'xMid': 984}, {'rectangleID': 161180, 'x1': 1442, 'y1': -16, 'x2': 1478, 'y2': 113, 'cameraID': 1, 'ratio': 1.3953488372093024, 'xMid': 1460}, {'rectangleID': 161180, 'x1': 322, 'y1': 150, 'x2': 381, 'y2': 330, 'cameraID': 2, 'ratio': 1.0, 'xMid': 3
+#51}, {'rectangleID': 161180, 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0, 'cameraID': 3, 'ratio': 0, 'xMid': 0}, {'rectangleID': 161180, 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0, 'cameraID': 4, 'ratio': 0, 'xMid': 0}, {'rectangleID': 161180, 'x1': 1336, 'y1': 159, 'x2': 1410, 'y2': 406, 'cameraID': 5, 'ratio': 0.728744939271255, 'xMid': 1373}, {'rectangleID': 161180, 'x1': 0,
+#'y1': 0, 'x2': 0, 'y2': 0, 'cameraID': 6, 'ratio': 0, 'xMid': 0}]
 
 def move(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
-            if request.POST['data'] == "down":
-                rectID = request.POST['ID']
-                if int(rectID) // settings.NB_WIDTH > 0:
-                    nextID = int(rectID) - settings.NB_WIDTH
-                else:
-                    return HttpResponse(json.dumps([]),content_type="application/json")
+            Xw = float(request.POST['data[Xw]'])
+            Yw = float(request.POST['data[Yw]'])
+            Zw = float(request.POST['data[Zw]'])
 
-            elif request.POST['data'] == "up":
-                rectID = request.POST['ID']
-                if int(rectID) // settings.NB_WIDTH < settings.NB_HEIGHT - 1:
-                    nextID = int(rectID) + settings.NB_WIDTH
-                else:
-                    return HttpResponse(json.dumps([]),content_type="application/json")
+            world_point = np.array([[Xw], [Yw], [Zw]])  
 
-            elif request.POST['data'] == "right":
-                rectID = request.POST['ID']
-                if int(rectID) % settings.NB_WIDTH < settings.NB_WIDTH - 1:
-                    nextID = int(rectID) + 1
-                else:
-                    return HttpResponse(json.dumps([]),content_type="application/json")
+            if request.POST['data[dir]'] == "down":
+                world_point = world_point + np.array([[0], [-settings.STEPL], [0]])
+                
+            elif request.POST['data[dir]'] == "up":
+                world_point = world_point + np.array([[0], [settings.STEPL], [0]])
+                
+            elif request.POST['data[dir]'] == "right":
+                world_point = world_point + np.array([[settings.STEPL], [0], [0]])
 
-            elif request.POST['data'] == "left":
-                rectID = request.POST['ID']
-                if int(rectID) % settings.NB_WIDTH > 0:
-                    nextID = int(rectID) - 1
-                else:
-                    return HttpResponse(json.dumps([]),content_type="application/json")
+            elif request.POST['data[dir]'] == "left":
+                world_point = world_point + np.array([[-settings.STEPL], [0], [0]])
 
             else:
                 return HttpResponse("Error")
-            next_rect = get_rect(nextID)
+            
+
+            next_rect = get_rect_calib(world_point)
+
             next_rect_json = json.dumps(next_rect)
+
             return HttpResponse(next_rect_json,content_type="application/json")
 
         except KeyError:
@@ -215,21 +254,23 @@ def move(request):
     return HttpResponse("Error")
 
 def save(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             data = json.loads(request.POST['data'])
             frameID = request.POST['ID']
             wid = request.POST['workerID']
             annotations = []
-            cols = ["rectID","personID","modified","a1","b1","c1","d1","a2","b2","c2","d2","a3","b3","c3","d3","a4","b4","c4","d4","a5","b5","c5","d5","a6","b6","c6","d6","a7","b7","c7","d7"]
+            cols = ["rectID","personID","modified","Xw","Yw","Zw"]#,"a1","b1","c1","d1","a2","b2","c2","d2","a3","b3","c3","d3","a4","b4","c4","d4","a5","b5","c5","d5","a6","b6","c6","d6","a7","b7","c7","d7"]
+            for i in range(settings.NB_CAMS):
+                cols += [f"a{i+1}", f"b{i+1}", f"c{i+1}", f"d{i+1}"]
             annotations.append(cols)
             for r in data:
                 row = data[r]
-                row.insert(0,int(r))
+                row.insert(0,r)
                 annotations.append(row)
             with open("gtm_hit/labels/"+ wid + "_" + frameID + '.json', 'w') as outFile:
                 json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
-            with open("gtm_hit/static/gtm_hit/day_2/annotation_final/labels/"+ wid + "_" + frameID + '.json', 'w') as outFile:
+            with open("gtm_hit/static/gtm_hit/dset/"+settings.DSETNAME+"/labels/"+ wid + "_" + frameID + '.json', 'w') as outFile:
                 json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
             return HttpResponse("Saved")
         except KeyError:
@@ -238,7 +279,7 @@ def save(request):
         return("Error")
 
 def load(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             frameID = request.POST['ID']
             wid = request.POST['workerID']
@@ -249,7 +290,7 @@ def load(request):
     return HttpResponse("Error")
 
 def load_previous(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
 
             frameID = request.POST['ID']
@@ -258,7 +299,7 @@ def load_previous(request):
             closest = float('inf')
             diff = float('inf')
 
-            for f in os.listdir("gtm_hit/labels/"):
+            for f in os.listdir("gtm_hit/static/gtm_hit/dset/"+settings.DSETNAME+"/labels/"):
                 if f.endswith(".json"):
                     nb_frame = int((f.split('.')[0]).split('_')[1])
                     if nb_frame < current_frame:
@@ -278,20 +319,18 @@ def read_save(frameID,workerID):
         annotations = json.load(loadFile)
     rects = []
     for i in annotations[1:]:
-        r = get_rect(i[0])
-        for j in range(settings.NB_CAMS):
-            r[j]['x1'] = i[j*4+3]
-            r[j]['y1'] = i[j*4+4]
-            r[j]['x2'] = i[j*4+5]
-            r[j]['y2'] = i[j*4+6]
+        world_point = np.array([[i[3]], [i[4]], [i[5]]])  
+        r = get_rect_calib(world_point)
         r.append(i[1])
         r.append(i[2])
+
         rects.append(r)
+
     return json.dumps(rects)
 
 def changeframe(request):
     context = RequestContext(request)
-    if request.is_ajax():
+    if is_ajax(request):
         frame = 0
         try:
             wID = request.POST['workerID']
@@ -348,7 +387,7 @@ def registerWorker(workerID):
     w = Worker()
     w.workerID = workerID
     w.frameNB = settings.STARTFRAME % settings.NBFRAMES
-    settings.STARTFRAME = settings.STARTFRAME + 50
+    settings.STARTFRAME = settings.STARTFRAME + 100*settings.INCREMENT 
     w.save()
     return w
 
@@ -372,12 +411,12 @@ def generate_code(worker):
     return code.validationCode
 
 def tuto(request,workerID):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     try:
         w = Worker.objects.get(pk = workerID)
         if w.state != 3:
             return redirect("/gtm_hit/"+workerID)
-        return render(request, 'gtm_hit/tuto.html',{'workerID' : workerID},context)
+        return render(request, 'gtm_hit/tuto.html',{'workerID' : workerID, **context})
 
     except Worker.DoesNotExist:
         return redirect("/gtm_hit/"+workerID)
