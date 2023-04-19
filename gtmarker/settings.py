@@ -29,7 +29,7 @@ SECRET_KEY = '%z1g%^3%nf-k3sf$i^qra_d*0m4745c57f&(su(2=&nuwt#=z1'
 DEBUG = True
 
 #ALLOWED_HOSTS = ['127.0.0.1']
-ALLOWED_HOSTS = ['10.90.43.13', 'pedestriantag.epfl.ch','localhost','127.0.0.1', '0.0.0.0']
+ALLOWED_HOSTS = ['10.90.43.13', 'pedestriantag.epfl.ch','localhost','127.0.0.1', '0.0.0.0', 'iccvlabsrv24.iccluster.epfl.ch']
 
 # Application definition
 
@@ -249,3 +249,5 @@ NB_CAMS = len(CAMS)
 HEIGHT = 180
 RADIUS = 30 
 STEPL = 10
+
+NOID = True

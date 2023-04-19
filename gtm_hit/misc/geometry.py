@@ -1,17 +1,25 @@
+import cv2
 import numpy as np
 
 from collections import namedtuple
 
 
-Calibration = namedtuple('Calibration', ['K', 'R', 'T', 'view_id'])
+Calibration = namedtuple('Calibration', ['K', 'R', 'T', 'dist', 'view_id'])
 Bbox = namedtuple('Bbox', ['xc', 'yc', 'w', 'h']) #, 'id', 'frame'])
 Annotations = namedtuple('Annotations', ['bbox', 'head', 'feet', 'height', 'id', 'frame', 'view'])
 Homography = namedtuple('Homography', ['H', 'input_size', 'output_size'])
 
-def reproject_to_world_ground(ground_pix, K0, R0, T0):
+def reproject_to_world_ground(ground_pix, K0, R0, T0, D0):
     """
     Compute world coordinate from pixel coordinate of point on the groundplane
     """
+    # print(ground_pix.shape)
+    # print(ground_pix)
+    # import pdb; pdb.set_trace()
+    ground_pix[:2, 0] = cv2.undistortPoints(ground_pix[:2], K0, D0, P=K0)[0]
+    # print(ground_pix.shape)
+    # print(ground_pix)
+
     C0 = -R0.T @ T0
     l = R0.T @ np.linalg.inv(K0) @ ground_pix
     world_point = C0 - l*(C0[2]/l[2])
@@ -19,10 +27,19 @@ def reproject_to_world_ground(ground_pix, K0, R0, T0):
     return world_point
     
     
-def project_world_to_camera(world_point, K1, R1, T1):
+def project_world_to_camera(world_point, K1, R1, T1, D1):
     """
     Project 3D point world coordinate to image plane (pixel coordinate)
     """
+
+    # print(world_point.shape)
+    point1, _ = cv2.projectPoints(world_point.T, R1, T1, K1, D1)
+    # print(point1.shape)
+    # print(point1)
+
+
+    return point1.squeeze()
+
     point1 = ((R1 @ world_point) + T1)
     if(np.min(point1[2]) < 0 ):
         print("Projection of world point located behind the camera plane")
@@ -36,8 +53,8 @@ def get_bbox_from_ground_world(world_point, calib, height, radius):
     top_left = calib.R.T@((calib.R@(world_point + np.array([[0],[0],[height]]))) + np.array([[-radius],[0],[0]]))
     bottom_right = calib.R.T@((calib.R@world_point) + np.array([[radius],[0],[0]]))
 
-    x1, y1 = project_world_to_camera(top_left, calib.K, calib.R, calib.T)
-    x2, y2 = project_world_to_camera(bottom_right, calib.K, calib.R, calib.T)
+    x1, y1 = project_world_to_camera(top_left, calib.K, calib.R, calib.T, calib.dist)
+    x2, y2 = project_world_to_camera(bottom_right, calib.K, calib.R, calib.T, calib.dist)
 
     return (x1, y1, x2, y2)
 

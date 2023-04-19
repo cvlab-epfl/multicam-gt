@@ -55,6 +55,7 @@ window.onload = function() {
       if(toggle_orientation)
         drawArrows(ctx,this.id-1);
       c.addEventListener('click',mainClick);
+      c.addEventListener('contextmenu',rightClick);
       loadcount++;
       if(loadcount == nb_cams) {
         $("#loader").hide();
@@ -87,6 +88,10 @@ window.onload = function() {
 };
 
 function mainClick(e) {
+  // console.log("JS click 1");
+  if (e.button == 2) return;
+  // console.log("JS click 2");
+  
   var canv = this;
   var offset = $(this).offset();
   var relativeX = (e.pageX - offset.left)-15;
@@ -126,6 +131,30 @@ function mainClick(e) {
     });
 
   }
+}
+
+function rightClick(e) {
+  // console.log("JS right click 1");
+  e.preventDefault(); e.stopPropagation();
+  
+  var canv = this;
+  var offset = $(this).offset();
+  var relativeX = (e.pageX - offset.left)-15;
+  var relativeY = (e.pageY - offset.top);
+  var xCorr = Math.round(relativeX*frame_size[0]/(this.clientWidth-30));
+  var yCorr = Math.round(relativeY*frame_size[1]/this.clientHeight);
+  if(relativeX >=0 && relativeX<=(this.clientWidth - 29)) {
+    if(zoomOn)
+      zoomOut();
+    
+    sendAJAX("rightclick", {
+      "newx":xCorr,
+      "newy":yCorr,
+      "canv":this.id,
+    }, rectsID[chosen_rect], moveRect);
+    update();
+  }
+  return false;
 }
 
 function backSpace() {

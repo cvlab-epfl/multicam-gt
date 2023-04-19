@@ -194,6 +194,7 @@ def get_rect_calib(world_point):
     return rectangles
 
 def click(request):
+    # print("click")
     if is_ajax(request):
         # try:
         x = int(request.POST['x'])
@@ -201,8 +202,8 @@ def click(request):
         cam = request.POST['canv']
         cam = int(re.findall('\d+',cam)[0]) - 1
         if 0 <= cam < settings.NB_CAMS:
-            feet2d_h = np.array([[x], [y], [1]])             
-            world_point = geometry.reproject_to_world_ground(feet2d_h, settings.CALIBS[cam].K, settings.CALIBS[cam].R, settings.CALIBS[cam].T)
+            feet2d_h = np.array([[x], [y], [1]]).astype(np.float32)             
+            world_point = geometry.reproject_to_world_ground(feet2d_h, settings.CALIBS[cam].K, settings.CALIBS[cam].R, settings.CALIBS[cam].T, settings.CALIBS[cam].dist)
             rectangles = get_rect_calib(world_point)
             rect_json = json.dumps(rectangles)
             return HttpResponse(rect_json,content_type="application/json")
@@ -217,6 +218,27 @@ def click(request):
 #[{'rectangleID': 161180, 'x1': 915, 'y1': 343, 'x2': 1053, 'y2': 840, 'cameraID': 0, 'ratio': 0.36217303822937624, 'xMid': 984}, {'rectangleID': 161180, 'x1': 1442, 'y1': -16, 'x2': 1478, 'y2': 113, 'cameraID': 1, 'ratio': 1.3953488372093024, 'xMid': 1460}, {'rectangleID': 161180, 'x1': 322, 'y1': 150, 'x2': 381, 'y2': 330, 'cameraID': 2, 'ratio': 1.0, 'xMid': 3
 #51}, {'rectangleID': 161180, 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0, 'cameraID': 3, 'ratio': 0, 'xMid': 0}, {'rectangleID': 161180, 'x1': 0, 'y1': 0, 'x2': 0, 'y2': 0, 'cameraID': 4, 'ratio': 0, 'xMid': 0}, {'rectangleID': 161180, 'x1': 1336, 'y1': 159, 'x2': 1410, 'y2': 406, 'cameraID': 5, 'ratio': 0.728744939271255, 'xMid': 1373}, {'rectangleID': 161180, 'x1': 0,
 #'y1': 0, 'x2': 0, 'y2': 0, 'cameraID': 6, 'ratio': 0, 'xMid': 0}]
+
+def rightclick(request):
+    # print("rightclick")
+    if is_ajax(request):
+        # try:
+        x = int(request.POST['data[newx]'])
+        y = int(request.POST['data[newy]'])
+        cam = request.POST['data[canv]']
+        cam = int(re.findall('\d+',cam)[0]) - 1
+        if 0 <= cam < settings.NB_CAMS:
+            feet2d_h = np.array([[x], [y], [1]]).astype(np.float32)            
+            world_point = geometry.reproject_to_world_ground(feet2d_h, settings.CALIBS[cam].K, settings.CALIBS[cam].R, settings.CALIBS[cam].T, settings.CALIBS[cam].dist)
+            rectangles = get_rect_calib(world_point)
+            rect_json = json.dumps(rectangles)
+
+            return HttpResponse(rect_json,content_type="application/json")
+
+        # except KeyError:
+        #     return HttpResponse("Error")
+        
+    return HttpResponse("Error")
 
 def move(request):
     if is_ajax(request):
@@ -291,6 +313,8 @@ def load(request):
 
 def load_previous(request):
     if is_ajax(request):
+        if settings.NOID:
+            return HttpResponse("{}",content_type="application/json")
         try:
 
             frameID = request.POST['ID']

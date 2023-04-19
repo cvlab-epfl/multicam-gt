@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^(?P<workerID>[A-Z0-9]+)/tuto$', views.tuto, name="tuto"),
     url(r'^(?P<workerID>[A-Z0-9]+)/frame$', views.frame, name='frame'),
     url(r'^(?P<workerID>[A-Z0-9]+)/processFrame$', views.processFrame, name="processFrame"),
+    url(r'^.*rightclick',views.rightclick,name="rightclick"),
     url(r'^.*click',views.click,name="click"),
     url(r'^.*move',views.move,name="move"),
     url(r'^.*changeframe$', views.changeframe, name='changeframe'),

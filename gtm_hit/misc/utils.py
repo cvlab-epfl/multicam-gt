@@ -41,7 +41,12 @@ def read_calibs(calib_filepath, camera_names):
         dists = list()
 
         for i, cname in enumerate(camera_names):
-            curr_calib = Calibration(K=np.array(calibration_json[cname]["K"]), R=np.array(calibration_json[cname]["R"]), T=np.array(calibration_json[cname]["t"])[..., np.newaxis], view_id=i)
+            if "dist" in calibration_json[cname]:
+                curr_dist = np.array(calibration_json[cname]["dist"])
+            else:
+                curr_dist = np.zeros((4, 1))
+
+            curr_calib = Calibration(K=np.array(calibration_json[cname]["K"]), R=np.array(calibration_json[cname]["R"]), T=np.array(calibration_json[cname]["t"])[..., np.newaxis], dist=curr_dist, view_id=i)
             curr_dist = np.array(calibration_json[cname]["dist"])
 
             calibs.append(curr_calib)
