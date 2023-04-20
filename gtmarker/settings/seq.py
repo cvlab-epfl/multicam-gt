@@ -15,6 +15,9 @@ from pathlib import Path
 from gtm_hit.misc.wildtrack_calib import load_calibrations
 from gtm_hit.misc.utils import read_calibs, get_frame_size
 
+from configs.arguments import get_config_dict
+from utils.log_utils import log, dict_to_string
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -233,15 +236,33 @@ DELTA_SEARCH = 5
 # except FileNotFoundError:
 #         print("Error: Rectangle file not found")
 
+conf_dict =  get_config_dict()
+mvv = MultiviewVids()
+log.debug(f'conf_dict: {dict_to_string(conf_dict["annotation"])}')
+
+root_dir = Path(conf_dict["main"]["data_root"]) / "1-annotation/"
+
+
+DSETNAME = "val"
+CAMS = mvv.get_cam_names()
+
+#make symbolic link to the dataset
+# symbolic link to data
+for cam in CAMS:
+    os.symlink(root_dir / "1-annotation/" / "val/" / cam, ".multicam-gt/gtm_hit/static/gtm_hit/dset/"+DSETNAME+"/frames/"+cam)
+
+# symbolic link to labels
+os.symlink(root_dir / "1-annotation/" / "labels" / "val/", ".multicam-gt/gtm_hit/static/gtm_hit/dset/"+DSETNAME+"/labels/")
+
+
 VALIDATIONCODES = []
 STARTFRAME = 0
-NBFRAMES = 5000
+NBFRAMES = conf_dict["annotation"]["val_seq_length"]
 LASTLOADED = 0
-INCREMENT = 12
+INCREMENT = 1
 UNLABELED = list(range(0,NBFRAMES,INCREMENT))
 
-DSETNAME = "rayon4"
-CAMS = ["cam1","cam2","cam3","cam4"]
+
 FRAME_SIZES = get_frame_size(DSETNAME, CAMS, STARTFRAME)
 CALIBS = read_calibs(Path("./gtm_hit/static/gtm_hit/dset/"+DSETNAME+"/calibrations/full_calibration.json"), CAMS)
 NB_CAMS = len(CAMS)
@@ -250,4 +271,4 @@ HEIGHT = 180
 RADIUS = 30 
 STEPL = 10
 
-NOID = True
+NOID = False
