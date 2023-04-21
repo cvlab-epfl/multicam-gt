@@ -54,10 +54,10 @@ def read_calibs(calib_filepath, camera_names):
 
         return calibs 
     
-def get_frame_size(dset, cams, start_frame):
+def get_frame_size(root_dir, dset, cams, start_frame):
     sizes = list()
     for cam in cams:
-        frame_path = "./gtm_hit/static/gtm_hit/dset/"+dset+"/frames/" + cam + "/" +str(start_frame).zfill(8) + ".png" 
+        frame_path = str(root_dir) + "/1-annotation/multicam-gt/gtm_hit/static/gtm_hit/dset/"+dset+"/frames/" + cam + "/" f"{cam}_{start_frame}" + ".png" 
         img = Image.open(frame_path)
         sizes.append(img.width)
         sizes.append(img.height)

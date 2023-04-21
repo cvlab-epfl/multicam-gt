@@ -11,11 +11,19 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+
+import sys
+
+if "../" not in sys.path:
+	sys.path.insert(0, "../")
+	sys.path.insert(0, "../../")
+
 from pathlib import Path
 from gtm_hit.misc.wildtrack_calib import load_calibrations
 from gtm_hit.misc.utils import read_calibs, get_frame_size
 
 from configs.arguments import get_config_dict
+from utils.multiview_utils import MultiviewVids
 from utils.log_utils import log, dict_to_string
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -115,7 +123,7 @@ WSGI_APPLICATION = 'gtmarker.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'mydatabase', # This is where you put the name of the db file. 
+        'NAME': 'pedestriantag', # This is where you put the name of the db file. 
                  # If one doesn't exist, it will be created at migration time.
     }
 }
@@ -166,7 +174,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-print(BASE_DIR) 
 STATIC_URL = 'static/'
 
 #STATICFILES_DIRS = (os.path.join(BASE_DIR, 'gtm_hit'),)
@@ -236,33 +243,50 @@ DELTA_SEARCH = 5
 # except FileNotFoundError:
 #         print("Error: Rectangle file not found")
 
+
 conf_dict =  get_config_dict()
 mvv = MultiviewVids()
 
 log.debug(f'conf_dict: {dict_to_string(conf_dict["annotation"])}')
 
 root_dir = Path(conf_dict["main"]["data_root"]) 
+root_code = Path(conf_dict["main"]["code_root"]) 
 
 DSETNAME = "train"
-CAMS = mvv.get_cam_names()
+CAMS = [cam.no_ext_name for cam in mvv]
 
 #make symbolic link to the dataset
 # symbolic link to data
 for cam in CAMS:
-    os.symlink(root_dir / "1-annotation/" / "train/" / cam, ".multicam-gt/gtm_hit/static/gtm_hit/dset/"+DSETNAME+"/frames/"+cam)
+    cam_path = root_code / "1-annotation" / "multicam-gt/gtm_hit/static/gtm_hit/dset/" / DSETNAME / "frames/" / cam
+    cam_path.parent.mkdir(parents=True, exist_ok=True)
+
+    try:
+        os.unlink(cam_path)
+    except:
+        pass
+
+    os.symlink(root_dir / "1-annotation/" / "train/" / cam, cam_path)
 
 # symbolic link to labels
-os.symlink(root_dir / "1-annotation/" / "labels" / "train/", ".multicam-gt/gtm_hit/static/gtm_hit/dset/"+DSETNAME+"/labels/")
+LABEL_PATH = root_code / "1-annotation" / "multicam-gt/gtm_hit/static/gtm_hit/dset/" / DSETNAME / "labels/"
+LABEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+try:
+    os.unlink(LABEL_PATH)
+except:
+    pass
+os.symlink(root_dir / "1-annotation/" / "labels" / "train/", LABEL_PATH)
 
 VALIDATIONCODES = []
 STARTFRAME = 0
-NBFRAMES = NBFRAMES = conf_dict["annotation"]["num_train_sample"]
+NBFRAMES = len(list(cam_path.glob("*.png"))) #conf_dict["annotation"]["num_train_sample"]
 LASTLOADED = 0
 INCREMENT = 1
 UNLABELED = list(range(0,NBFRAMES,INCREMENT))
 
-FRAME_SIZES = get_frame_size(DSETNAME, CAMS, STARTFRAME)
-CALIBS = read_calibs(root_dir / "0-calibration/", CAMS)
+FRAME_SIZES = get_frame_size(root_code, DSETNAME, CAMS, STARTFRAME)
+CALIBS = mvv.get_calibrations()#read_calibs(root_dir / "0-calibration/", CAMS)
 NB_CAMS = len(CAMS)
 
 HEIGHT = 180
@@ -270,3 +294,7 @@ RADIUS = 30
 STEPL = 10
 
 NOID = True
+
+# sys.argv.pop()
+# sys.argv.pop()
+# print(sys.argv)

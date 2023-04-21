@@ -117,7 +117,8 @@ def frame(request,workerID):
         if w.frameNB < 0:
             w.frameNB = settings.STARTFRAME
             w.save()
-        frame_number = w.frameNB
+        frame_number = str(int(w.frameNB))
+        print(frame_number)
         nblabeled = w.frame_labeled
         return render(request, 'gtm_hit/frame.html',{'dset_name':settings.DSETNAME, 'frame_number': frame_number, 'frame_inc':settings.INCREMENT, 'workerID': workerID,'cams': settings.CAMS, 'frame_size':settings.FRAME_SIZES, 'nb_cams':settings.NB_CAMS, 'nblabeled' : nblabeled, **context})
     except Worker.DoesNotExist:
@@ -290,9 +291,9 @@ def save(request):
                 row = data[r]
                 row.insert(0,r)
                 annotations.append(row)
-            with open("gtm_hit/labels/"+ wid + "_" + frameID + '.json', 'w') as outFile:
-                json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
-            with open("gtm_hit/static/gtm_hit/dset/"+settings.DSETNAME+"/labels/"+ wid + "_" + frameID + '.json', 'w') as outFile:
+            # with open("gtm_hit/labels/"+ wid + "_" + frameID + '.json', 'w') as outFile:
+            #     json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
+            with open(settings.LABEL_PATH / (wid + "_" + frameID + '.json'), 'w') as outFile:
                 json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
             return HttpResponse("Saved")
         except KeyError:
@@ -331,7 +332,8 @@ def load_previous(request):
                             diff = current_frame - nb_frame
                             closest = nb_frame
             if closest != float('inf'):
-                frame = "0" * (8 - len(str(closest))) + str(closest)
+                # frame = "0" * (8 - len(str(closest))) + str(closest)
+                frame = str(closest)
                 rect_json = read_save(frame,wid)
                 return HttpResponse(rect_json,content_type="application/json")
         except (FileNotFoundError, KeyError):
@@ -339,7 +341,7 @@ def load_previous(request):
     return HttpResponse("Error")
 
 def read_save(frameID,workerID):
-    with open("gtm_hit/labels/"+ workerID + "_" + frameID + '.json','r') as loadFile:
+    with open(settings.LABEL_PATH + (workerID + "_" + frameID + '.json'), 'w') as loadFile:
         annotations = json.load(loadFile)
     rects = []
     for i in annotations[1:]:
@@ -376,7 +378,9 @@ def changeframe(request):
                 frame = int(frame_number) - int(increment)
             else:
                 return HttpResponse("Requested frame not existing")
-            frame = "0" * (8 - len(str(frame))) + str(frame)
+            # frame = "0" * (8 - len(str(frame))) + str(frame)
+            frame = str(frame)
+
             response = {}
             response['frame'] = frame
             response['nblabeled'] = worker.frame_labeled
@@ -411,7 +415,7 @@ def registerWorker(workerID):
     w = Worker()
     w.workerID = workerID
     w.frameNB = settings.STARTFRAME % settings.NBFRAMES
-    settings.STARTFRAME = settings.STARTFRAME + 100*settings.INCREMENT 
+    settings.STARTFRAME = settings.STARTFRAME + 10000*settings.INCREMENT 
     w.save()
     return w
 

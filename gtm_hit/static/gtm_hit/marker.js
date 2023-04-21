@@ -18,7 +18,7 @@ var bounds = [[0,396,1193,180,1883,228,1750,1080],[0,344,1467,77,1920,82,-1,-1],
               [0,244,1920,162,-1,-1,-1,-1]];
 var toggle_ground;
 var toggle_orientation;
-var to_label = 415;
+var to_label = 100000;
 // hashsets --> rect per camera ? rect -> id to coordinates?
 // store variables here? in db ? (reupload db?)
 window.onload = function() {
@@ -65,7 +65,7 @@ window.onload = function() {
 
     loadcount = 0;
     $("#loader").show();
-    imgArray[i].src = '../../static/gtm_hit/dset/'+dset_name+'/frames/'+ camName[i]+ '/'+frame_str+'.png'; // change 00..0 by a frame variable
+    imgArray[i].src = '../../static/gtm_hit/dset/'+dset_name+'/frames/'+ camName[i]+ '/'+ camName[i] + "_" +frame_str+'.png'; // change 00..0 by a frame variable
     //imgArray[i].src = '../../static/gtm_hit/frames/'+ camName[i]+frame_str+'.png'; // change 00..0 by a frame variable
   }
 
@@ -486,7 +486,7 @@ function changeFrame(order,increment) {
       fstr = fstr.replace(/^0*/, "");
       $("#frameID").html("Frame ID: " + fstr +"&nbsp;&nbsp;");
       for (var i = 0; i < nb_cams; i++)
-        imgArray[i].src = '../../static/gtm_hit/dset/'+dset_name+'/frames/'+ camName[i]+ '/'+frame_str+'.png'; // change 00..0 by a frame variable
+        imgArray[i].src = '../../static/gtm_hit/dset/'+dset_name+'/frames/'+ camName[i]+ '/'+ camName[i] + "_" +frame_str+'.png'; // change 00..0 by a frame variable
         //imgArray[i].src = '../../static/gtm_hit/frames/'+ camName[i]+frame_str+'.png'; // change 00..0 by a frame variable
 
     },
