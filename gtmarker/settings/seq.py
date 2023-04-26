@@ -253,7 +253,7 @@ root_dir = Path(conf_dict["main"]["data_root"])
 root_code = Path(conf_dict["main"]["code_root"]) 
 
 DSETNAME = "val"
-CAMS = [cam.no_ext_name for cam in mvv]
+CAMS = [cam.name for cam in mvv]
 
 #make symbolic link to the dataset
 # symbolic link to data
