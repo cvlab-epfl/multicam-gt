@@ -14,6 +14,8 @@ import os
 
 import sys
 
+import shutil
+
 if "../" not in sys.path:
 	sys.path.insert(0, "../")
 	sys.path.insert(0, "../../")
@@ -265,18 +267,27 @@ for cam in CAMS:
         os.unlink(cam_path)
     except:
         pass
+    # try:
+    #     shutil.copytree(root_dir / "1-annotation/" / "train/" / cam, cam_path)
+    # except:
+    #     log.warning("files already exist")
+    #     pass
 
     os.symlink(root_dir / "1-annotation/" / "train/" / cam, cam_path)
 
 # symbolic link to labels
 LABEL_PATH = root_code / "1-annotation" / "multicam-gt/gtm_hit/static/gtm_hit/dset/" / DSETNAME / "labels/"
-LABEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+LABEL_PATH.mkdir(parents=True, exist_ok=True)
 
-try:
-    os.unlink(LABEL_PATH)
-except:
-    pass
-os.symlink(root_dir / "1-annotation/" / "labels" / "train/", LABEL_PATH)
+SECOND_LABEL_PATH = root_dir / "1-annotation/" / "labels" / DSETNAME
+SECOND_LABEL_PATH.mkdir(parents=True, exist_ok=True)
+
+
+# try:
+#     os.unlink(LABEL_PATH)
+# except:
+#     pass
+# os.symlink(root_dir / "1-annotation/" / "labels" / "train/", LABEL_PATH)
 
 VALIDATIONCODES = []
 STARTFRAME = 0

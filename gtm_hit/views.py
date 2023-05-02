@@ -295,6 +295,8 @@ def save(request):
             #     json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
             with open(settings.LABEL_PATH / (wid + "_" + frameID + '.json'), 'w') as outFile:
                 json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
+            with open(settings.SECOND_LABEL_PATH / (wid + "_" + frameID + '.json'), 'w') as outFile:
+                json.dump(annotations, outFile, sort_keys=True, indent=4, separators=(',', ': '))
             return HttpResponse("Saved")
         except KeyError:
             return HttpResponse("Error")

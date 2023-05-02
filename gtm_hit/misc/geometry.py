@@ -53,8 +53,8 @@ def get_bbox_from_ground_world(world_point, calib, height, radius):
     top_left = calib.R.T@((calib.R@(world_point + np.array([[0],[0],[height]]))) + np.array([[-radius],[0],[0]]))
     bottom_right = calib.R.T@((calib.R@world_point) + np.array([[radius],[0],[0]]))
 
-    x1, y1 = project_world_to_camera(top_left, calib.K, calib.R, calib.T, calib.dist)
-    x2, y2 = project_world_to_camera(bottom_right, calib.K, calib.R, calib.T, calib.dist)
+    x1, y1 = project_world_to_camera(top_left, calib.K_new, calib.R, calib.T, calib.dist)
+    x2, y2 = project_world_to_camera(bottom_right, calib.K_new, calib.R, calib.T, calib.dist)
 
     return (x1, y1, x2, y2)
 
@@ -66,7 +66,7 @@ def triangulate_point(points_2d, multi_calib):
     camera_positions = [-calib.R.T @ calib.T for calib in multi_calib]
     
     #Compute 3D direction from camera toward point
-    point_directions = [-calib.R.T @ np.linalg.inv(calib.K) @ point for point, calib in zip(points_2d, multi_calib)]
+    point_directions = [-calib.R.T @ np.linalg.inv(calib.K_new) @ point for point, calib in zip(points_2d, multi_calib)]
     
     point_3d = nearest_intersection(np.array(camera_positions).squeeze(2), np.array(point_directions))
     
