@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+from scipy.spatial.transform import Rotation
 from collections import namedtuple
 
 
@@ -16,12 +16,16 @@ def reproject_to_world_ground(ground_pix, K0, R0, T0, D0):
     # print(ground_pix.shape)
     # print(ground_pix)
     # import pdb; pdb.set_trace()
-    ground_pix[:2, 0] = cv2.undistortPoints(ground_pix[:2], K0, D0, P=K0)[0]
+    K0 = np.array(K0).astype(np.float32)
+    R0 = np.array(R0).astype(np.float32)
+    T0 = np.array(T0).astype(np.float32)
+    D0 = np.array(D0).astype(np.float32)
+    ground_pix[:2, 0] = cv2.undistortPoints(ground_pix[:2], K0, D0, P = K0)[0]
     # print(ground_pix.shape)
-    # print(ground_pix)
 
     C0 = -R0.T @ T0
     l = R0.T @ np.linalg.inv(K0) @ ground_pix
+    l = l.reshape(3,)
     world_point = C0 - l*(C0[2]/l[2])
     
     return world_point
@@ -31,9 +35,12 @@ def project_world_to_camera(world_point, K1, R1, T1, D1):
     """
     Project 3D point world coordinate to image plane (pixel coordinate)
     """
-
-    # print(world_point.shape)
-    point1, _ = cv2.projectPoints(world_point.T, R1, T1, K1, D1)
+    world_point = np.array(world_point).reshape(3,1).astype(np.float32)
+    K1 = np.array(K1).reshape(3,3).astype(np.float32)
+    R1 = Rotation.from_matrix(R1).as_rotvec().astype(np.float32)
+    T1 = np.array(T1).reshape(3,1).astype(np.float32)
+    D1 = np.array(D1).reshape(-1,1).astype(np.float32)
+    point1, _ = cv2.projectPoints(world_point, R1, T1, K1, D1)
     # print(point1.shape)
     # print(point1)
 
@@ -50,9 +57,8 @@ def project_world_to_camera(world_point, K1, R1, T1, D1):
     return point1[:2]
 
 def get_bbox_from_ground_world(world_point, calib, height, radius):
-    top_left = calib.R.T@((calib.R@(world_point + np.array([[0],[0],[height]]))) + np.array([[-radius],[0],[0]]))
-    bottom_right = calib.R.T@((calib.R@world_point) + np.array([[radius],[0],[0]]))
-
+    top_left = calib.R.T@((calib.R@(world_point + np.array([[0],[0],[height]]).reshape(3,))) + np.array([[-radius],[0],[0]]).reshape(3,))
+    bottom_right = calib.R.T@((calib.R@world_point) + np.array([[radius],[0],[0]]).reshape(3,))
     x1, y1 = project_world_to_camera(top_left, calib.K, calib.R, calib.T, calib.dist)
     x2, y2 = project_world_to_camera(bottom_right, calib.K, calib.R, calib.T, calib.dist)
 

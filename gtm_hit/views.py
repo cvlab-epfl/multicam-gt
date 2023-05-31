@@ -203,8 +203,10 @@ def click(request):
         cam = request.POST['canv']
         cam = int(re.findall('\d+',cam)[0]) - 1
         if 0 <= cam < settings.NB_CAMS:
-            feet2d_h = np.array([[x], [y], [1]]).astype(np.float32)             
-            world_point = geometry.reproject_to_world_ground(feet2d_h, settings.CALIBS[cam].K, settings.CALIBS[cam].R, settings.CALIBS[cam].T, settings.CALIBS[cam].dist)
+            feet2d_h = np.array([[x], [y], [1]]).astype(np.float32)
+            world_point = geometry.reproject_to_world_ground(
+                feet2d_h, settings.CALIBS[cam].K, settings.CALIBS[cam].R, 
+                settings.CALIBS[cam].T, settings.CALIBS[cam].dist)
             rectangles = get_rect_calib(world_point)
             rect_json = json.dumps(rectangles)
             return HttpResponse(rect_json,content_type="application/json")

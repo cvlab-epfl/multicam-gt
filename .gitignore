@@ -1,3 +1,4 @@
 *.pyc
 *.pom
 day2
+gtm_hit/static/gtm_hit/dset/**
