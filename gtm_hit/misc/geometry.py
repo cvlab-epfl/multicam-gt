@@ -53,8 +53,8 @@ def get_bbox_from_ground_world(world_point, calib, height, radius):
     top_left = calib.R.T@((calib.R@(world_point + np.array([[0],[0],[height]]))) + np.array([[-radius],[0],[0]]))
     bottom_right = calib.R.T@((calib.R@world_point) + np.array([[radius],[0],[0]]))
 
-    x1, y1 = project_world_to_camera(top_left, calib.K_new, calib.R, calib.T, calib.dist)
-    x2, y2 = project_world_to_camera(bottom_right, calib.K_new, calib.R, calib.T, calib.dist)
+    x1, y1 = project_world_to_camera(top_left, calib.K, calib.R, calib.T, calib.dist)
+    x2, y2 = project_world_to_camera(bottom_right, calib.K, calib.R, calib.T, calib.dist)
 
     return (x1, y1, x2, y2)
 
