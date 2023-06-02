@@ -188,6 +188,7 @@ def get_rect_calib(world_point):
     rectangles = list()
     rect_id = str(int(world_point[0])) + "_" + str(int(world_point[1])) #random.randint(0,100000)
     for cam_id in range(settings.NB_CAMS):
+        world_point = world_point.reshape(3,)
         rectangle = geometry.get_bbox_from_ground_world(world_point, settings.CALIBS[cam_id], settings.HEIGHT, settings.RADIUS)
         rectangle_as_dict = convert_rect_to_dict(rectangle, cam_id, rect_id, world_point)
         rectangles.append(rectangle_as_dict)    
