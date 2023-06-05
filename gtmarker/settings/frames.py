@@ -260,27 +260,34 @@ CAMS = [cam.name for cam in mvv]
 #make symbolic link to the dataset
 # symbolic link to data
 for cam in CAMS:
-    cam_path = root_code / "1-annotation" / "multicam-gt/gtm_hit/static/gtm_hit/dset/" / DSETNAME / "frames/" / cam
-    cam_path.parent.mkdir(parents=True, exist_ok=True)
+    cam_path = (root_code / "1-annotation" / "multicam-gt" / "gtm_hit"/ "static" 
+                / "gtm_hit" / "dset" / DSETNAME / "frames")
+    cam_path.mkdir(parents=True, exist_ok=True)
 
-    try:
-        os.unlink(cam_path)
-    except:
-        pass
-    # try:
-    #     shutil.copytree(root_dir / "1-annotation/" / "train/" / cam, cam_path)
-    # except:
-    #     log.warning("files already exist")
-    #     pass
+    if (cam_path / cam).is_symlink():
+        os.unlink(cam_path / cam)
 
-    os.symlink(root_dir / "1-annotation/" / "train/" / cam, cam_path)
+    (cam_path / cam).symlink_to(root_dir / "1-annotation" / "train" / cam)
 
 # symbolic link to labels
-LABEL_PATH = root_code / "1-annotation" / "multicam-gt/gtm_hit/static/gtm_hit/dset/" / DSETNAME / "labels/"
-LABEL_PATH.mkdir(parents=True, exist_ok=True)
+LABEL_PATH = (root_code / "1-annotation" / "multicam-gt" / "gtm_hit"/ "static" 
+              / "gtm_hit" / "dset" / DSETNAME / "labels")
 
-SECOND_LABEL_PATH = root_dir / "1-annotation/" / "labels" / DSETNAME
+if LABEL_PATH.is_symlink():
+    os.unlink(LABEL_PATH)
+if LABEL_PATH.exists():
+    shutil.rmtree(LABEL_PATH)
+
+LABEL_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+SECOND_LABEL_PATH = root_dir / "1-annotation" / "labels" / DSETNAME
+
+if SECOND_LABEL_PATH.is_symlink():
+    os.unlink(SECOND_LABEL_PATH)
+
 SECOND_LABEL_PATH.mkdir(parents=True, exist_ok=True)
+
+LABEL_PATH.symlink_to(SECOND_LABEL_PATH)
 
 
 # try:
@@ -291,7 +298,7 @@ SECOND_LABEL_PATH.mkdir(parents=True, exist_ok=True)
 
 VALIDATIONCODES = []
 STARTFRAME = 0
-NBFRAMES = len(list(cam_path.glob("*.png"))) #conf_dict["annotation"]["num_train_sample"]
+NBFRAMES = len(list((cam_path / cam).glob("*.png"))) #conf_dict["annotation"]["num_train_sample"]
 LASTLOADED = 0
 INCREMENT = 1
 UNLABELED = list(range(0,NBFRAMES,INCREMENT))
