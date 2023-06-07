@@ -2,3 +2,4 @@
 *.pom
 day2
 gtm_hit/static/gtm_hit/dset/**
+.DS_Store
