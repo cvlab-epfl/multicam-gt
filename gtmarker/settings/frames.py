@@ -266,6 +266,12 @@ for cam in CAMS:
 
     if (cam_path / cam).is_symlink():
         os.unlink(cam_path / cam)
+    if (cam_path / cam).exists():
+        print(f"removing {cam_path / cam}")
+        shutil.rmtree(cam_path / cam)
+
+    if (root_dir / "1-annotation" / "train" / cam).is_symlink():
+        os.unlink(root_dir / "1-annotation" / "train" / cam)
 
     (cam_path / cam).symlink_to(root_dir / "1-annotation" / "train" / cam)
 
