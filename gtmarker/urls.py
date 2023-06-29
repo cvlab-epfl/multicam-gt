@@ -13,16 +13,17 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
-from django.conf.urls import include, url, handler404, handler403, handler400,handler500
+from django.urls import re_path
+from django.conf.urls import include, handler404, handler403, handler400,handler500
 from django.contrib import admin
 from home import views as v
 
 urlpatterns = [
-    url(r'^$', v.index),
-    url(r'^marker/', include('marker.urls')),
-    url(r'^admin/', admin.site.urls),
-    url(r'^gtm_hit/', include('gtm_hit.urls')),
-    url(r'^login/$', v.login),
+    re_path(r'^$', v.index),
+    re_path(r'^marker/', include('marker.urls')),
+    re_path(r'^admin/', admin.site.urls),
+    re_path(r'^gtm_hit/', include('gtm_hit.urls')),
+    re_path(r'^login/$', v.login),
 ]
 
 handler400 = 'home.views.bad_request'

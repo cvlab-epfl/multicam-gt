@@ -4,8 +4,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core import serializers
-from django.core.urlresolvers import reverse
 from django.views import generic
+from django.urls import reverse
 from django.utils import timezone
 from django.conf import settings
 from django.template import RequestContext
@@ -17,19 +17,22 @@ from io import BytesIO
 
 
 def index(request):
-    context = RequestContext(request)
-    return render(request, 'marker/index.html',{},context)
+    context = RequestContext(request).flatten()
+    return render(request, 'marker/index.html',context)
 
 def framenb(request,frame_number):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     files = list_files()
-    return render(request, 'marker/frame.html',{'frame_number': frame_number,'cams': settings.CAMS, 'files':files},context)
+    return render(request, 'marker/frame.html',{'frame_number': frame_number,'cams': settings.CAMS, 'files':files,**context})
 
 def frame(request):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     frame_number = 0
     files = list_files()
-    return render(request, 'marker/frame.html',{'frame_number': frame_number,'cams': settings.CAMS,'files':files},context)
+    return render(request, 'marker/frame.html',{'frame_number': frame_number,'cams': settings.CAMS,'files':files, **context})
+
+def is_ajax(request):
+    return request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest'
 
 def list_files():
     worker_p = "gtm_hit/labels"
@@ -38,7 +41,7 @@ def list_files():
     files = files + os.listdir(marker_p)
     return files
 def click(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             x = int(request.POST['x'])
             y = int(request.POST['y'])
@@ -64,7 +67,7 @@ def click(request):
     return HttpResponse("No")
 
 def move(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             if request.POST['data'] == "down":
                 rectID = request.POST['ID']
@@ -105,7 +108,7 @@ def move(request):
     return HttpResponse("Error")
 
 def save(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             data = json.loads(request.POST['data'])
             frameID = request.POST['ID']
@@ -125,7 +128,7 @@ def save(request):
         return("Error")
 
 def load(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             frameID = request.POST['ID']
             rect_json = read_save(frameID)
@@ -135,7 +138,7 @@ def load(request):
     return HttpResponse("Error")
 
 def load_previous(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             frameID = request.POST['ID']
             current_frame = int(frameID)
@@ -182,7 +185,7 @@ def read_save(frameID,fullpath=False):
     return json.dumps(rects)
 
 def changeframe(request):
-    if request.is_ajax():
+    if is_ajax(request):
         frame = 0
         try:
             order = request.POST['order']
@@ -221,7 +224,7 @@ def get_rect(closest):
     return rects
 
 def download(request):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     fpath = "marker/labels"
     files = os.listdir(fpath)
     todl = []
@@ -251,10 +254,10 @@ def download(request):
             resp['Content-Disposition'] = 'attachment; filename=' + zip_name
             return resp
 
-    return render(request, 'marker/download.html',{'files': files},context)
+    return render(request, 'marker/download.html',{'files': files, **context})
 
 def download_worker(request):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     fpath = "gtm_hit/labels"
     files = os.listdir(fpath)
     todl = []
@@ -284,11 +287,11 @@ def download_worker(request):
             resp['Content-Disposition'] = 'attachment; filename=' + zip_name
             return resp
 
-    return render(request, 'marker/download.html',{'files': files},context)
+    return render(request, 'marker/download.html',{'files': files,**context})
 
 
 def user_login(request):
-    context = RequestContext(request)
+    context = RequestContext(request).flatten()
     error = False
     active = True
     if request.method == 'POST':
@@ -306,7 +309,7 @@ def user_login(request):
         else:
             error = True
 
-    return render(request,'marker/login.html', {'error': error, 'active':active}, context)
+    return render(request,'marker/login.html', {'error': error, 'active':active, **context})
 
 @login_required
 def user_logout(request):
@@ -315,7 +318,7 @@ def user_logout(request):
 
 
 def loadfile(request):
-    if request.is_ajax():
+    if is_ajax(request):
         try:
             fileID = request.POST['ID']
             rect_json = read_save(fileID,True)

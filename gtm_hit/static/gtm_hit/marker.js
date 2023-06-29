@@ -18,16 +18,16 @@ var bounds = [[0,396,1193,180,1883,228,1750,1080],[0,344,1467,77,1920,82,-1,-1],
               [0,244,1920,162,-1,-1,-1,-1]];
 var toggle_ground;
 var toggle_orientation;
-var to_label = 9;
+var to_label = 100000;
 // hashsets --> rect per camera ? rect -> id to coordinates?
 // store variables here? in db ? (reupload db?)
 window.onload = function() {
-  toggle_ground = true;
-  toggle_orientation = true;
+  toggle_ground = false;
+  toggle_orientation = false;
 
   var d = document.getElementById("changeF");
   if(d != null){
-    d.className = d.className + " disabled";
+    d.className = d.className; // + " disabled";
     if(nblabeled >= to_label) {
       var button = document.getElementById("changeF");
       button.href="/gtm_hit/" + workerID + "/processFrame";
@@ -38,7 +38,7 @@ window.onload = function() {
     load_prev();
   }
   camName = cams.substring(2,cams.length-2).split("', '");
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     boxes[i] = {};
 
     arrArray[i] = new Image();
@@ -55,8 +55,9 @@ window.onload = function() {
       if(toggle_orientation)
         drawArrows(ctx,this.id-1);
       c.addEventListener('click',mainClick);
+      c.addEventListener('contextmenu',rightClick);
       loadcount++;
-      if(loadcount == 7) {
+      if(loadcount == nb_cams) {
         $("#loader").hide();
       }
       update();
@@ -64,7 +65,7 @@ window.onload = function() {
 
     loadcount = 0;
     $("#loader").show();
-    imgArray[i].src = '../../static/gtm_hit/day_2/annotation_final/'+ camName[i]+ '/begin/'+frame_str+'.png'; // change 00..0 by a frame variable
+    imgArray[i].src = '../../static/gtm_hit/dset/'+dset_name+'/frames/'+ camName[i]+ '/'+ camName[i] + "_" +frame_str+'.png'; // change 00..0 by a frame variable
     //imgArray[i].src = '../../static/gtm_hit/frames/'+ camName[i]+frame_str+'.png'; // change 00..0 by a frame variable
   }
 
@@ -87,12 +88,16 @@ window.onload = function() {
 };
 
 function mainClick(e) {
+  // console.log("JS click 1");
+  if (e.button == 2) return;
+  // console.log("JS click 2");
+  
   var canv = this;
   var offset = $(this).offset();
   var relativeX = (e.pageX - offset.left)-15;
   var relativeY = (e.pageY - offset.top);
-  var xCorr = Math.round(relativeX*1920/(this.clientWidth-30));
-  var yCorr = Math.round(relativeY*1080/this.clientHeight);
+  var xCorr = Math.round(relativeX*frame_size[0]/(this.clientWidth-30));
+  var yCorr = Math.round(relativeY*frame_size[1]/this.clientHeight);
   if(relativeX >=0 && relativeX<=(this.clientWidth - 29)) {
     if(zoomOn)
       zoomOut();
@@ -126,6 +131,30 @@ function mainClick(e) {
     });
 
   }
+}
+
+function rightClick(e) {
+  // console.log("JS right click 1");
+  e.preventDefault(); e.stopPropagation();
+  
+  var canv = this;
+  var offset = $(this).offset();
+  var relativeX = (e.pageX - offset.left)-15;
+  var relativeY = (e.pageY - offset.top);
+  var xCorr = Math.round(relativeX*frame_size[0]/(this.clientWidth-30));
+  var yCorr = Math.round(relativeY*frame_size[1]/this.clientHeight);
+  if(relativeX >=0 && relativeX<=(this.clientWidth - 29)) {
+    if(zoomOn)
+      zoomOut();
+    
+    sendAJAX("rightclick", {
+      "newx":xCorr,
+      "newy":yCorr,
+      "canv":this.id,
+    }, rectsID[chosen_rect], moveRect);
+    update();
+  }
+  return false;
 }
 
 function backSpace() {
@@ -175,25 +204,45 @@ function space() {
 }
 
 function left() {
-  sendAJAX("move","left",rectsID[chosen_rect],moveRect);
+  sendAJAX("move", {
+    "dir":"left", 
+    "Xw":boxes[0][identities[rectsID[chosen_rect]]]["Xw"],
+    "Yw":boxes[0][identities[rectsID[chosen_rect]]]["Yw"],
+    "Zw":boxes[0][identities[rectsID[chosen_rect]]]["Zw"] 
+  }, rectsID[chosen_rect], moveRect);
   update();
   return false;
 }
 
 function right() {
-  sendAJAX("move","right",rectsID[chosen_rect],moveRect);
+  sendAJAX("move", {
+    "dir":"right", 
+    "Xw":boxes[0][identities[rectsID[chosen_rect]]]["Xw"],
+    "Yw":boxes[0][identities[rectsID[chosen_rect]]]["Yw"],
+    "Zw":boxes[0][identities[rectsID[chosen_rect]]]["Zw"] 
+  }, rectsID[chosen_rect], moveRect);
   update();
   return false;
 }
 
 function up() {
-  sendAJAX("move","up",rectsID[chosen_rect],moveRect);
+  sendAJAX("move", {
+    "dir":"up", 
+    "Xw":boxes[0][identities[rectsID[chosen_rect]]]["Xw"],
+    "Yw":boxes[0][identities[rectsID[chosen_rect]]]["Yw"],
+    "Zw":boxes[0][identities[rectsID[chosen_rect]]]["Zw"] 
+  }, rectsID[chosen_rect], moveRect);
   update();
   return false;
 }
 
 function down() {
-  sendAJAX("move","down",rectsID[chosen_rect],moveRect);
+  sendAJAX("move", {
+    "dir":"down", 
+    "Xw":boxes[0][identities[rectsID[chosen_rect]]]["Xw"],
+    "Yw":boxes[0][identities[rectsID[chosen_rect]]]["Yw"],
+    "Zw":boxes[0][identities[rectsID[chosen_rect]]]["Zw"] 
+  }, rectsID[chosen_rect], moveRect);
   update()
   return false;
 }
@@ -262,7 +311,7 @@ function getIndx() {
   var h = -1;
   var retInd = -1;
   var pid = identities[rectsID[chosen_rect]];
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     r = boxes[i][pid];
     tpH = Math.abs(r.y1 - r.y2);
 
@@ -277,7 +326,7 @@ function getIndx() {
 function updateSize(height,size,ind) {
   var r = rectsID[chosen_rect];
   var pid = identities[r];
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     rect = boxes[i][pid];
     if(i != ind && rect.y1 != 0) {
       if(height) {
@@ -309,9 +358,12 @@ function save() {
     dims[rid] = [];
     dims[rid].push(pid);
     dims[rid].push(validation[pid]);
+    dims[rid].push(boxes[0][pid].Xw)
+    dims[rid].push(boxes[0][pid].Yw)
+    dims[rid].push(boxes[0][pid].Zw)
   }
 
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     for (var j = 0; j < rectsID.length; j++) {
       var rid = rectsID[j];
       var pid = identities[rid];
@@ -376,14 +428,14 @@ function loader(uri) {
           rectsID.push(rid);
           saveRectLoad(msg[i]);
           chosen_rect = rectsID.length-1;
-          identities[rid] = msg[i][7];
-          var pid = msg[i][7];
+          identities[rid] = msg[i][nb_cams];
+          var pid = msg[i][nb_cams];
           if(pid > maxID)
             maxID = pid;
           if(uri == "loadprev")
             validation[pid] = false;
           else
-            validation[pid] = msg[i][8];
+            validation[pid] = msg[i][nb_cams+1];
         }
       }
       personID = maxID + 1;
@@ -393,7 +445,7 @@ function loader(uri) {
   });
 }
 function clean() {
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     boxes[i] = {};
     rectsID = [];
     validation =  {};
@@ -433,8 +485,8 @@ function changeFrame(order,increment) {
       fstr = frame_str;
       fstr = fstr.replace(/^0*/, "");
       $("#frameID").html("Frame ID: " + fstr +"&nbsp;&nbsp;");
-      for (var i = 0; i < cameras; i++)
-        imgArray[i].src = '../../static/gtm_hit/day_2/annotation_final/'+ camName[i]+ '/begin/'+frame_str+'.png'; // change 00..0 by a frame variable
+      for (var i = 0; i < nb_cams; i++)
+        imgArray[i].src = '../../static/gtm_hit/dset/'+dset_name+'/frames/'+ camName[i]+ '/'+ camName[i] + "_" +frame_str+'.png'; // change 00..0 by a frame variable
         //imgArray[i].src = '../../static/gtm_hit/frames/'+ camName[i]+frame_str+'.png'; // change 00..0 by a frame variable
 
     },
@@ -524,7 +576,7 @@ function saveRect(msg,pid) {
 function saveRectLoad(msg) {
   for (var i = 0; i < msg.length-2; i++) {
     var ind = msg[i].cameraID;
-    boxes[ind][msg[7]] = msg[i];
+    boxes[ind][msg[nb_cams]] = msg[i];
   }
 }
 
@@ -548,15 +600,15 @@ function moveRect(msg,id) {
     var oldRect = boxes[ind][pid];
 
     var newRect = msg[i];
-    var heightR = Math.abs(oldRect.y1-oldRect.y2)*oldRect.ratio;
-    var widthR = Math.abs(oldRect.x1-oldRect.x2)*oldRect.ratio;
+    // var heightR = Math.abs(oldRect.y1-oldRect.y2)*oldRect.ratio;
+    // var widthR = Math.abs(oldRect.x1-oldRect.x2)*oldRect.ratio;
 
-    if(newRect.ratio > 0){
-      newRect.y1 = Math.round(newRect.y2 - (heightR/newRect.ratio));
-      var delta = widthR/(2*newRect.ratio);
-      newRect.x2 = Math.round(newRect.xMid + delta);
-      newRect.x1 = Math.round(newRect.xMid - delta);
-    }
+    // if(newRect.ratio > 0){
+    //   newRect.y1 = Math.round(newRect.y2 - (heightR/newRect.ratio));
+    //   var delta = widthR/(2*newRect.ratio);
+    //   newRect.x2 = Math.round(newRect.xMid + delta);
+    //   newRect.x1 = Math.round(newRect.xMid - delta);
+    // }
     boxes[ind][pid] = newRect;
   }
 }
@@ -577,13 +629,13 @@ function update() {
         else if(d.className.indexOf("disabled") == -1)
         d.className = d.className + " disabled";
     } else if(d.className.indexOf("disabled") == -1) {
-      d.className = d.className + " disabled";
+      d.className = d.className;// + " disabled";
     }
   }
 }
 
 function drawRect() {
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     var c = document.getElementById("canv"+(i+1));
     var ctx=c.getContext("2d");
     ctx.clearRect(0, 0, c.width, c.height);
@@ -641,7 +693,7 @@ function drawRect() {
 }
 
 function drawGround() {
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     var c = document.getElementById("canv"+(i+1));
     var ctx=c.getContext("2d");
     ctx.strokeStyle="chartreuse";
@@ -677,7 +729,7 @@ function zoomControl() {
 }
 
 function zoomIn() {
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     var pid = identities[rectsID[chosen_rect]];
     var r = boxes[i][pid];
 
@@ -703,7 +755,7 @@ function zoomIn() {
 }
 
 function zoomOut() {
-  for (var i = 0; i < cameras; i++) {
+  for (var i = 0; i < nb_cams; i++) {
     var c = document.getElementById("canv"+(i+1));
     if(zoomratio[i] != Infinity) {
       c.width=c.width*zoomratio[i];
@@ -733,6 +785,7 @@ function toggleOrientation() {
 }
 
 function checkRects() {
+  return true
   var c = 0;
   for (var i = 0; i < rectsID.length; i++) {
     var personID = identities[rectsID[i]];
