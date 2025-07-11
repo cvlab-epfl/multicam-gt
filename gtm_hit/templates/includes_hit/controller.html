@@ -1,54 +1,61 @@
 {% load marker_extra%}
+<script>
+function toggleMenu() {
+  var menu = document.querySelector('.menu-container');
+  var toggleBtn = document.querySelector('.toggle-menu-btn');
 
+  if (menu.style.display === 'none') {
+    menu.style.display = 'block';
+    toggleBtn.innerText = 'Hide Menu';
+  } else {
+    menu.style.display = 'none';
+    toggleBtn.innerText = 'Show Menu';
+  }
+}
+</script>
 
-<div class="well col-sm-12 big">
-  <div class="row">
-    <h4 class="col-sm-4">Selection</h4>
-    <div class="col-sm-8">
-      <div class="btn-group">
-        <button class="btn btn-primary" onclick="tab()">Next</button>
-        <button class="btn btn-primary" onclick="space()">Previous</button>
-      </div>
-      <button class="btn btn-warning" onclick="backSpace()">Remove</button>
-  </div>
-
-</div>
-<hr class="intro-divider">
-
-  <div class="row">
-    <h4 class="col-sm-4">Position</h4>
-    <div class="col-sm-8">
-      <div class="btn-group">
-        <button class="btn btn-primary col-sm-6" onclick="up()">Up</button>
-        <button class="btn btn-primary col-sm-6" onclick="down()">Down</button>
-      </div>
-      <div class="btn-group">
-      <button class="btn btn-primary col-sm-6" onclick="right()">Right</button>
-      <button class="btn btn-primary col-sm-6" onclick="left()">Left</button>
-
-  </div>
-</div>
-<!-- </div>
-<hr class="intro-divider">
-
-<div class="row">
-  <h4 class="col-sm-4">Size</h4>
-  <div class="col-sm-8">
+<div class="menu-container" style="display: none; bottom: 0px; right: 0; position:fixed; z-index: 1000;">
+  <div class="well" style="width: 350px;">
     <div class="row">
-      <h5 class="col-sm-4">Height</h5>
-      <div class="btn-group">
-      <button class="btn btn-primary" onclick="incrHeight()">+</button>
-      <button class="btn btn-primary" onclick="decrHeight()">-</button>
+      <div class="col-12">
+        <h4>Position</h4>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="up()">Up</button>
+          <button class="btn btn-primary" onclick="down()">Down</button>
+          <button class="btn btn-primary" onclick="right()">Right</button>
+          <button class="btn btn-primary" onclick="left()">Left</button>
+          <button class="btn btn-primary" onclick="rotateCW()">CW</button>
+          <button class="btn btn-primary" onclick="rotateCCW()">CCW</button>
+        </div>
+      </div>
     </div>
-    </div>
-    <div class="row">
-      <h5 class="col-sm-4">Width</h5>
-      <div class="btn-group">
-      <button class="btn btn-primary" onclick="incrWidth()">+</button>
-      <button class="btn btn-primary" onclick="decrWidth()">-</button>
-    </div>
-    </div>
-</div>
-</div> -->
 
+    <div class="row">
+      <div class="col-12">
+        <h4>Selection</h4>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="tab()">Next</button>
+          <button class="btn btn-primary" onclick="space()">Previous</button>
+          <button class="btn btn-warning" onclick="backSpace()">Remove</button>
+          <button class="btn btn-warning" onclick="removePersonFromAll()">Remove All</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-12">
+        <h4>Mark</h4>
+        <div class="btn-group">
+          <button class="btn btn-primary" onclick="personAction({'mark':true})">Complete</button>
+          <button class="btn btn-primary" onclick="personAction({'mark':false})">Uncomplete</button>
+        </div>
+      </div>
+    </div>
+
+  {% include "includes_hit/side_menu.html" %}
+
+  </div>
 </div>
+
+
+

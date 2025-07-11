@@ -11,10 +11,21 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from pathlib import Path
+import numpy as np
+import shutil
+from gtm_hit.misc.utils import read_calibs, get_frame_size
+from gtm_hit.misc.scout_calib import load_scout_calib
+from gtm_hit.misc.autoalign import get_pose_model
+import re
+import cv2 as cv2
+from tqdm import tqdm
+import json
+from shapely.geometry import Polygon
+from gtm_hit.misc.geometry import get_polygon_from_points_3d, reproject_to_world_ground_batched
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -23,16 +34,17 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = '%z1g%^3%nf-k3sf$i^qra_d*0m4745c57f&(su(2=&nuwt#=z1'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 #ALLOWED_HOSTS = ['127.0.0.1']
-ALLOWED_HOSTS = ['pedestriantag.epfl.ch']
+ALLOWED_HOSTS = ['10.90.43.13', 'pedestriantag.epfl.ch','localhost','127.0.0.1', '0.0.0.0',"192.168.100.23", "iccvlabsrv15.iccluster.epfl.ch"]
 
 # Application definition
 
 INSTALLED_APPS = [
     'marker.apps.MarkerConfig',
     'gtm_hit.apps.Gtm_hitConfig',
+    # 'gtm_hit',
     'home',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -43,7 +55,7 @@ INSTALLED_APPS = [
     'bootstrapform',
 ]
 
-MIDDLEWARE_CLASSES = [
+MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -87,35 +99,17 @@ WSGI_APPLICATION = 'gtmarker.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-#
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-#         'NAME': 'gtmarker',
-#         'USER': 'admin',
-#         'PASSWORD': '',
-#         'HOST': 'localhost',
-#         'PORT': '',
-#     }
-# }
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'pedestriantag',
-        'USER': 'pedestriantag',
-        'PASSWORD': 'lAzyLift96',
+        'NAME': 'scout',
+        'USER': 'scout',
+        'PASSWORD': '',
         'HOST': 'localhost',
         'PORT': '',
     }
 }
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -153,73 +147,85 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.10/howto/static-files/
 
-STATIC_URL = '/static/'
-
+STATIC_URL = 'static/'
+STATIC_ROOT = Path('gtm_hit/static')
 SAVES = '/labels/'
 
 # Constants
-#
-# f_rect = open('./marker/static/marker/cst.txt', 'r')
-# lines = f_rect.readlines()
-# f_rect.close()
-# NB_WIDTH = int(lines[2].split()[1])
-# NB_HEIGHT = int(lines[3].split()[1])
-# NB_RECT = NB_WIDTH * NB_HEIGHT
-# MAN_RAY = float(lines[4].split()[1])
-# MAN_HEIGHT = float(lines[5].split()[1])
-# REDUCTION = float(lines[6].split()[1])
-# NB_CAMS = int(lines[9].split()[1])
-
 DELTA_SEARCH = 5
 
-#TEMPLATES[0]['OPTIONS']['context_processors'].append("marker.context_processors.rectangles_processor")
+DSETNAME = "SCOUT"
 
-try:
-    rectangles_file = './marker/static/marker/rectangles.pom'#480x1440.pom'
-    f_rect = open(rectangles_file, 'r')
-    lines = f_rect.readlines()
-    f_rect.close()
-    if lines[0].split()[0] != "WIDTH":
-        messagebox.showerror("Error","Incorrect file header")
-    else:
-        NB_WIDTH = int(lines[2].split()[1])
-        NB_HEIGHT = int(lines[3].split()[1])
-        NB_RECT = NB_WIDTH * NB_HEIGHT
-        MAN_RAY = float(lines[4].split()[1])
-        MAN_HEIGHT = float(lines[5].split()[1])
-        REDUCTION = float(lines[6].split()[1])
-        NB_CAMS = int(lines[9].split()[1])
-        incr = 0
-        test = []
-        FIND_RECT = [[{} for _ in range(2913)] for _ in range(NB_CAMS)]
-        RECT = [{} for _ in range(NB_CAMS)]
-        for line in lines[10:]:
-            l = line.split()
-            cam = int(l[1])
-            id_rect = int(l[2])
-            if l[3] != "notvisible":
-                a, b, c, d = l[3:]
-                a = int(a)
-                b = int(b)
-                c = int(c)
-                d = int(d)
-                ratio = 180/(d-b)
-                if d < 5000:
-                    if abs(c - a) < abs(d - b):
-                        RECT[cam][id_rect] = (a, b, c, d,ratio)
-                        FIND_RECT[cam][d][(a + c) // 2] = id_rect
-except FileNotFoundError:
-        print("Error: Rectangle file not found")
+# Enable mesh
+USE_MESH = True
+# Paths
+DSETPATH = STATIC_ROOT / "gtm_hit" / "dset" / DSETNAME
+FRAMES = DSETPATH / "frames"
+CALIBPATH = DSETPATH / "calibrations"
+MESHPATH = DSETPATH / "meshes" / "mesh.ply"
+ROIPATH = DSETPATH / "roi" / "roi.json"
+
+FPS = 1 # framerate of input video (note, assumes 10fps base)
+NUM_FRAMES = 12000
+FRAME_START = 0
+FRAME_END = FRAME_START + NUM_FRAMES
+HEIGHT = 1.8
+RADIUS = 0.5 # person radius
+FLAT_GROUND = False # Whether or not to use the mesh for dataset generation and annotation
+FRAME_SKIP = int(float(10 / FPS))
+TIMEWINDOW = 5 * FRAME_SKIP # cropped frames loaded when selecting a bounding box (on either side)
 
 VALIDATIONCODES = []
-STARTFRAME = 550
-NBFRAMES = 18000
-UNLABELED = list(range(0,NBFRAMES,10))
-LASTLOADED = 990
+STARTFRAME = 2
+NBFRAMES = NUM_FRAMES + 10
+LASTLOADED = 0
+INCREMENT = FRAME_SKIP
+UNLABELED = list(range(0,NBFRAMES,INCREMENT))
 
-SERVER_PATH = "/Volumes/cvlabdata1/cvlab/datasets_people_tracking/ETH/day_2/"
-CAMS = []
-for i in range(4):
-    CAMS.append("cvlab_camera" + str(i+1))
-for i in range(3):
-    CAMS.append("idiap_camera" + str(i+1))
+STEPL = 0.02
+MOVE_STEP = 0.02 #same as stepl vidis ovoDA
+SIZE_CHANGE_STEP=0.03
+
+# CAMS = [Path(cam).name.replace('.json', '') for cam in CALIBPATH.iterdir()]
+CAMS = sorted(
+    [Path(cam).name.replace('.json', '') for cam in CALIBPATH.iterdir()],
+    key=lambda x: int(x.split('_')[1])
+)
+
+FRAME_SIZES = get_frame_size(DSETNAME, CAMS, STARTFRAME)
+NB_CAMS = len(CAMS)
+CALIBS= load_scout_calib(CALIBPATH, cameras=CAMS)
+ROTATION_THETA = np.pi/24
+UNDISTORTED_FRAMES=False
+MERGE_THRESHOLD = 1.0
+MAX_OUTLIER_GAP = 4
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# import trimesh
+# try:
+#     import trimesh.ray.ray_pyembree
+# except:
+#     print("It's going to be slow")
+
+# MESH = trimesh.load(MESHPATH, process=False, maintain_order=True, ignore_missing_files=True)
+# if hasattr(MESH, 'visual'):
+#     MESH.visual = trimesh.visual.ColorVisuals(MESH)
+
+
+ROIjson = json.load(open(ROIPATH))
+
+ROI = {}
+for cam_name, polygon in ROIjson['points_2d'].items():
+    if not cam_name in CALIBS.keys():
+        continue
+    # project 2d points to 3d
+    ground_pix = np.array(polygon)
+    K0, R0, T0, dist = CALIBS[cam_name].K, CALIBS[cam_name].R, CALIBS[cam_name].T, CALIBS[cam_name].dist
+    polygon_3d = reproject_to_world_ground_batched(ground_pix, K0, R0, T0, dist)
+    ROI[cam_name] = get_polygon_from_points_3d(polygon_3d)
+
+
+
+
+POSE_MODEL = get_pose_model(model_type="light") #performance
