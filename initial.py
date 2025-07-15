@@ -4,7 +4,7 @@ Sets up the repository as required, establishing symlinks and...
 
 For cvlab users:
 
-python initial.py --dset_src '/cvlabscratch/datasets/SCOUT' --dsetname SCOUT
+python initial.py --dset_src '/cvlabdata2/cvlab/scout' --dsetname SCOUT
 """
 from argparse import ArgumentParser
 from pathlib import Path
@@ -65,8 +65,8 @@ def main():
     safe_symlink(src_calibs, dest_calibs)
 
     # 3. Symlink for mesh
-    src_mesh = SYMLINK_BASE / 'meshes' / 'mesh.ply'
-    dest_mesh = DSETPATH / 'meshes' / 'mesh.ply'
+    src_mesh = SYMLINK_BASE / 'meshes'
+    dest_mesh = DSETPATH / 'meshes'
     dest_mesh.parent.mkdir(parents=True, exist_ok=True)
     safe_symlink(src_mesh, dest_mesh)
 

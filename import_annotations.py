@@ -6,7 +6,6 @@ from pathlib import Path
 import pickle
 from tqdm import tqdm
 import time
-import h5py
 import argparse
 import json
 from typing import List, Tuple, Dict, Union, Optional
@@ -19,6 +18,7 @@ from gtm_hit.models import MultiViewFrame, Worker, Annotation, Person, Dataset, 
 from django.conf import settings
 from gtm_hit.misc.db import save_2d_views_bulk, save_2d_views
 from django.db import transaction
+from gtm_hit.misc.geometry import Cuboid, get_cuboid2d_from_annotation
 
 
 Calibration = namedtuple('Calibration', ['K', 'R', 'T', 'dist', 'view_id'])
@@ -39,7 +39,8 @@ def create_dataset_for_worker(tracks_path: Path,
     worker, _ = Worker.objects.get_or_create(workerID=worker_id)
     dataset, _ = Dataset.objects.get_or_create(name=dataset_name)
 
-
+    if testing:
+        tracks_data['frames'] = tracks_data['frames'][:10]
     unique_person_keys = set()
     people_to_create = []
 
@@ -134,7 +135,6 @@ def create_dataset_for_worker(tracks_path: Path,
     for frame in tqdm(tracks_data['frames'], desc="generating 2d annotations"):
         for annotation_dict in frame['annotations']:
             person = people[annotation_dict['track_id']]
-            cuboid = annotation_dict['cuboid_3d']
             annotation = annotation_lookup[(frame['frame_id'], annotation_dict['track_id'])]
             for cam, bbox in annotation_dict['projections_2d'].items():
                 view_id = int(cam.split('_')[1])
@@ -142,16 +142,26 @@ def create_dataset_for_worker(tracks_path: Path,
                 if key not in existing_annotation2d_keys:
                     existing_annotation2d_keys.add(key)
                     x1, y1, x2, y2 = *bbox[0], *bbox[1]
-                    annotations_2d_batch.append(
-                        Annotation2DView(
+                    new_annotation = Annotation2DView(
                             view=views[settings.CAMS.index(cam)],
                             annotation=annotation,
                             x1=x1, y1=y1,
                             x2=x2, y2=y2
                         )
+
+                    ann_cuboid = get_cuboid2d_from_annotation(
+                        annotation,
+                        cam,
+                        settings.UNDISTORTED_FRAMES,
+                    )
+                    if ann_cuboid is not None:
+                        new_annotation.set_cuboid_points_2d(ann_cuboid)
+                    annotations_2d_batch.append(
+                        new_annotation
                     )
 
             if len(annotations_2d_batch) > 1000:
+
                 Annotation2DView.objects.bulk_create(
                     annotations_2d_batch,
                     update_conflicts=True,
@@ -174,7 +184,7 @@ def create_dataset_for_worker(tracks_path: Path,
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='SCOUT')
-    parser.add_argument('--worker', type=str, default='SCIPIO')
+    parser.add_argument('--worker', type=str, default='TESTING')
     parser.add_argument('--input', type=str, required=True, help = 'Root directory of target dataset json to import')
 
     args = parser.parse_args()

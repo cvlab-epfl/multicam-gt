@@ -243,7 +243,7 @@ def read_calibs(calib_filepath, camera_names):
 def get_frame_size(dset, cams, start_frame):
     sizes = list()
     for cam in cams:
-        frame_pattern = f"{cam}_*_*_*_*_{start_frame}.jpg"
+        frame_pattern = f"image_{start_frame}.jpg"
         frame_path = Path("./gtm_hit/static/gtm_hit/dset") / dset / "frames" / cam
         matching_frames = list(frame_path.glob(frame_pattern))
         

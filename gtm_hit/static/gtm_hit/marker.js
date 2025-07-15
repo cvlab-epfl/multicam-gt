@@ -711,12 +711,17 @@ function mainClick(e) {
   // Get canvas context to access current transform state
   const ctx = this.getContext('2d');
   const transform = ctx.getTransform();
+  console.log("Transform:", frame_size);
   // First convert the DOM event coordinates to "canvas coordinates"
   const canvasX = offsetX * (frame_size[0] / this.clientWidth);
   const canvasY = offsetY * (frame_size[1] / this.clientHeight);
+
+  console.log("Canvas coords:", canvasX, canvasY);
   // Now invert the current zoom/pan transform so that we recover the original image coordinate.
   const invTransform = transform.inverse();
   const origPoint = invTransform.transformPoint(new DOMPoint(canvasX, canvasY));
+
+  console.log("Original image point:", origPoint);
   var xCorr = Math.round(origPoint.x);
   var yCorr = Math.round(origPoint.y);
 

@@ -42,6 +42,7 @@ createuser scout
 createdb --owner=scout scout
 
 python manage.py migrate
+python import_annotations.py --dataset SCOUT --worker workerID --input /cvlabdata2/cvlab/scout/annotations/raw/annotations_sequence_1_raw.json
 python manage.py runserver 0.0.0.0:4444
 ```
 You can now access the application at http://localhost:4444

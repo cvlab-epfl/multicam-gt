@@ -14,7 +14,7 @@ invision2
 invision3
 # vim swap files
 *.sw[po]
-.DS_Store
+**.DS_Store
 dump*
 motmetrics
 *.mp4

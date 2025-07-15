@@ -44,7 +44,6 @@ ALLOWED_HOSTS = ['10.90.43.13', 'pedestriantag.epfl.ch','localhost','127.0.0.1',
 INSTALLED_APPS = [
     'marker.apps.MarkerConfig',
     'gtm_hit.apps.Gtm_hitConfig',
-    # 'gtm_hit',
     'home',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -54,6 +53,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bootstrapform',
 ]
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -162,7 +162,7 @@ USE_MESH = True
 DSETPATH = STATIC_ROOT / "gtm_hit" / "dset" / DSETNAME
 FRAMES = DSETPATH / "frames"
 CALIBPATH = DSETPATH / "calibrations"
-MESHPATH = DSETPATH / "meshes" / "mesh.ply"
+MESHPATH = DSETPATH / "meshes" / "mesh_ground_only.ply"
 ROIPATH = DSETPATH / "roi" / "roi.json"
 
 FPS = 1 # framerate of input video (note, assumes 10fps base)
@@ -202,15 +202,11 @@ MAX_OUTLIER_GAP = 4
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-# import trimesh
-# try:
-#     import trimesh.ray.ray_pyembree
-# except:
-#     print("It's going to be slow")
+import trimesh
 
-# MESH = trimesh.load(MESHPATH, process=False, maintain_order=True, ignore_missing_files=True)
-# if hasattr(MESH, 'visual'):
-#     MESH.visual = trimesh.visual.ColorVisuals(MESH)
+MESH = trimesh.load(MESHPATH, process=False, maintain_order=True, ignore_missing_files=True)
+if hasattr(MESH, 'visual'):
+    MESH.visual = trimesh.visual.ColorVisuals(MESH)
 
 
 ROIjson = json.load(open(ROIPATH))

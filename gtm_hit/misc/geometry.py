@@ -421,58 +421,139 @@ def is_point_in_polygon(polygon, test_point):
     # Check if point is inside or on boundary
     return polygon.contains(test_point_2d) or polygon.touches(test_point_2d)
 
-def is_visible(point3d:np.ndarray, cam_name:str, check_mesh:bool = True) -> bool:
+# def is_visible(point3d:np.ndarray, cam_name:str, check_mesh:bool = True) -> bool:
+#     """
+#     Checks if a 3D point is visible in the camera frame, optionally considering mesh occlusion.
+#     Args:
+#         point3d (np.ndarray): 3D point.
+#         cam_name (str): Camera name.
+#         check_mesh (bool): Whether to check mesh occlusion.
+#     Returns:
+#         bool: True if visible, False otherwise.
+#     """
+#     calib = settings.CALIBS[cam_name]
+    
+#     point3d = np.array(point3d).reshape(-1, 3)
+#     camera_position = (-calib.R.T @ calib.T).flatten().reshape(-1, 3)
+#     ray_to_point = point3d - camera_position
+
+#     # check behind camera
+#     if np.dot(ray_to_point, calib.R[2]) < 0:
+#         return False
+    
+#     # check if point in ROI
+#     if settings.ROI:
+#         polygon = settings.ROI[cam_name]
+#         if not is_point_in_polygon(polygon, point3d):
+#             return False
+        
+#     # Check if there’s an intersection between the ray and the mesh
+#     if settings.MESH is not None and check_mesh:
+#         # Get intersection locations with the mesh
+#         locations, _, _ = settings.MESH.ray.intersects_location(
+#             ray_origins=np.atleast_2d(np.array(camera_position)), 
+#             ray_directions=np.atleast_2d(np.array(ray_to_point))
+#         )
+        
+#         if len(locations) > 0:
+#             distance_to_point_sq = np.dot(ray_to_point, ray_to_point)
+#             distance_to_intersection_sq = min(
+#                 np.dot(location - camera_position, location - camera_position) 
+#                 for location in locations
+#             )
+
+#             # If there’s an intersection closer than the point, return False
+#             if distance_to_intersection_sq < distance_to_point_sq:
+#                 print(f"Point {point3d} is not visible due to mesh intersection.")
+#                 return False
+
+            
+#     # If no intersection occurs before the point, return True
+#     return True
+
+def is_visible(point3d: np.ndarray, cam_name: str, check_mesh: bool = True) -> bool:
     """
     Checks if a 3D point is visible in the camera frame, optionally considering mesh occlusion.
+
     Args:
-        point3d (np.ndarray): 3D point.
+        point3d (np.ndarray): 3D point with shape (3,) or (1, 3).
         cam_name (str): Camera name.
         check_mesh (bool): Whether to check mesh occlusion.
+
     Returns:
         bool: True if visible, False otherwise.
     """
     calib = settings.CALIBS[cam_name]
-    
-    point3d = np.array(point3d).reshape(-1, 3)
-    camera_position = (-calib.R.T @ calib.T).flatten()
-    ray_to_point = point3d - camera_position
 
-    # check behind camera
-    if np.dot(ray_to_point, calib.R[2]) < 0:
+    # Ensure point3d is a 2D array of shape (1, 3)
+    point3d = np.asarray(point3d, dtype=float).reshape(1, 3)  # shape: (1, 3)
+
+    # Camera position in world coordinates: shape (3,)
+    # calib.R: (3,3), calib.T: (3,) or (3,1)
+    camera_position = (-calib.R.T @ calib.T).flatten()  # shape: (3,)
+
+    # Compute vector from camera to point: shape (1, 3)
+    ray_to_point = point3d - camera_position  # broadcasting camera_position (3,) to (1,3)
+
+    # Check if point is behind the camera
+    # calib.R[2]: camera's forward direction, shape (3,)
+    # ray_to_point: (1,3), take dot product along last axis
+    dot_products = np.dot(ray_to_point, calib.R[2])  # shape: (1,)
+    if dot_products[0] < 0:
         return False
-    
-    # check if point in ROI
+
+    # Check if point is inside the camera's region of interest (ROI)
     if settings.ROI:
         polygon = settings.ROI[cam_name]
-        if not is_point_in_polygon(polygon, point3d):
+        # Pass the point as a 1D array for polygon check
+        if not is_point_in_polygon(polygon, point3d[0]):
+            print(f"Point {point3d[0]} is not in ROI for camera {cam_name}.")
             return False
-        
-    
-    # Check if there’s an intersection between the ray and the mesh
-    if settings.MESH is not None and check_mesh:
-        # Get intersection locations with the mesh
-        locations, _, _ = settings.MESH.ray.intersects_location(
-            ray_origins=np.array(camera_position), 
-            ray_directions=np.array(ray_to_point)
-        )
-        
-        if len(locations) > 0:
-            distance_to_point_sq = np.dot(ray_to_point, ray_to_point)
-            distance_to_intersection_sq = min(
-                np.dot(location - camera_position, location - camera_position) 
-                for location in locations
-            )
 
-            # If there’s an intersection closer than the point, return False
-            if distance_to_intersection_sq < distance_to_point_sq:
-                print(f"Point {point3d} is not visible due to mesh intersection.")
+    # Check mesh occlusion if enabled
+    if settings.MESH is not None and check_mesh:
+        # Prepare ray origin and direction arrays for mesh intersection
+        ray_origins = camera_position.reshape(1, 3)  # (1, 3)
+        ray_directions = ray_to_point / np.linalg.norm(ray_to_point, axis=1, keepdims=True)  # normalized (1, 3)
+
+        # Perform intersection test
+        locations, _, _ = settings.MESH.ray.intersects_location(
+            ray_origins=ray_origins,
+            ray_directions=ray_directions
+        )
+
+        if len(locations) > 0:
+            # Squared distance from camera to point
+            distance_to_point_sq = np.sum((point3d[0] - camera_position) ** 2)
+
+            # Squared distances to each intersection point
+            distances_to_intersections_sq = np.sum((locations - camera_position) ** 2, axis=1)
+
+            # If any intersection is closer than the point, the point is occluded
+            # if np.any(distances_to_intersections_sq < distance_to_point_sq):
+            #     print(f"Point {point3d[0]} is not visible due to mesh intersection.")
+            #     return False
+
+            # Define a threshold to filter out near-camera intersections (e.g., 10 cm)
+            epsilon = 2.0  # meters
+            epsilon_sq = epsilon ** 2
+
+            fuzzy_ground = 0.5 ** 2  # meters
+
+
+            # Only consider intersections that are between the camera and the point,
+            # and farther than epsilon from the camera
+            valid_intersections = distances_to_intersections_sq[
+                (distances_to_intersections_sq + fuzzy_ground < distance_to_point_sq) &
+                (distances_to_intersections_sq > epsilon_sq)
+            ]
+
+            if len(valid_intersections) > 0:
+                print(f"Point {point3d[0]} is not visible due to mesh intersection in view {cam_name}.")
                 return False
 
-            
-    # If no intersection occurs before the point, return True
+    # If none of the checks failed, point is visible
     return True
-
-
 
 
 def get_bounding_box(points):
