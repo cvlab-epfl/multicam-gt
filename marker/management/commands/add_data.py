@@ -1,6 +1,5 @@
 from django.core.management.base import BaseCommand, CommandError
 from marker.models import Rectangle
-import pandas as pd
 import json
 import os
 class Command(BaseCommand):

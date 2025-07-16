@@ -51,7 +51,9 @@ window.onload = function() {
     loadcount = 0;
     $("#loader").show();
     imgArray[i].src = '../../static/marker/day_2/annotation_final/'+ camName[i]+ '/begin/'+frame_str+'.png'; // change 00..0 by a frame variable
+    // imgArray[i].src = '../../static/gtm_hit/dset/rayon4/frames/'+ camName[i]+"/"+frame_str+'.png'; // change 00..0 by a frame variable
     //imgArray[i].src = '../../static/gtm_hit/frames/'+ camName[i]+frame_str+'.png'; // change 00..0 by a frame variable
+    ///Users/ivanvrkic/Downloads/multicam-gt-master/gtm_hit/static/gtm_hit/dset/rayon4/frames
   }
   $(document).bind('keydown', "backspace",backSpace);
   $(document).bind('keydown', "left",left);
@@ -379,7 +381,11 @@ function loader(uri) {
       personID = maxID + 1;
       update();
       }
+    },
+    error: function(msg) {
+      alert(JSON.parse(msg));
     }
+    
   });
 }
 function clean() {
@@ -414,6 +420,7 @@ function changeFrame(order,increment) {
       $("#frameID").html("Frame ID: " + fstr +"&nbsp;&nbsp;");
       for (var i = 0; i < cameras; i++)
         imgArray[i].src = '../../static/marker/day_2/annotation_final/'+ camName[i]+ '/begin/'+frame_str+'.png'; // change 00..0 by a frame variable
+        // imgArray[i].src = '../../static/gtm_hit/dset/rayon4/frames/'+ camName[i]+"/"+frame_str+'.png'; // change 00..0 by a frame variable
       clean();
       update();
     }
@@ -755,6 +762,8 @@ function load_frame(frame_string) {
   $("#frameID").html("Frame ID: " + fstr +"&nbsp;&nbsp;");
   for (var i = 0; i < cameras; i++)
     imgArray[i].src = '../../static/marker/day_2/annotation_final/'+ camName[i]+ '/begin/'+frame_string+'.png'; // change 00..0 by a frame variable
+    // imgArray[i].src = '../../static/gtm_hit/dset/rayon4/frames/'+ camName[i]+"/"+frame_str+'.png'; // change 00..0 by a frame variable
+
   clean();
   update();
 }

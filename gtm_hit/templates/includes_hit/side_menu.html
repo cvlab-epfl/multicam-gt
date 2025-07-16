@@ -1,16 +1,86 @@
 {% load gtm_hit_extra%}
+<h4 class="infos-header">Selected Person Info</h4>
+<div class="row">
+  <div class="col-sm-6">
+    <p>First frame:</p>
+    <p>X</p>
+  </div>
+  <div class="col-sm-6">
+    <p>Last frame:</p>
+    <p>X</p>
+  </div>
+</div>
+<div class="row">
+  <div class="col-sm-3">
+    <label for="pID">ID:</label>
+    <input class="" style="width: 50px;" id="pID"></input>
 
+  </div>
+  <div class="col-sm-3">
+    <label for="splitFrame">Split at frame:</label>
+    <input type="number" class="" style="width: 70px;" id="splitFrame"></input>
+  </div>
+  <div class="col-sm-5">
+    <label for="propagate">Propagate:</label>
+    <select id="propagate">
+      <option value="future">Future</option>
+      <option value="past">Past</option>
+      <option value="none">None</option>
+    </select>
 
-<div class="well col-sm-12 big">
-  <h4 class="col-sm-12">Infos</h4>
-  <div class="col-sm-12">
-  <label for="pHeight" class="col-sm-5">Person height:</label>
-    <div class="panel col-sm-2" id="pHeight">-1</panel>
+    <label for="conflicts">Conflicts:</label>
+    <select id="conflicts">
+      <option value="assign_new">Assign new ID</option>
+      <option value="delete">Delete</option>
+    </select>
+  </div>
+
+  <div class="col-sm-4">
+    <button class="btn btn-sm btn-primary" onclick="changeID()">Change ID</button>
+
+  </div>
+</div>
+<div class="row">
+
+  <div class="col-sm-4">
+    <div class="btn-group" role="group">
+      <div id="pHeight">-1</div>
+
+      <button class="btn btn-primary" onclick="decreaseHeight()">-</button>
+      <button class="btn btn-primary" onclick="increaseHeight()">+</button>
+    </div>
+  </div>
+  <div class="col-sm-4">
+    <div class="btn-group" role="group">
+      <div id="pWidth">-1</div>
+      <button class="btn btn-primary" onclick="decreaseWidth()">-</button>
+      <button class="btn btn-primary" onclick="increaseWidth()">+</button>
+    </div>
+  </div>
+
+  <div class="col-sm-4">
+    <div class="btn-group" role="group">
+      <div id="pLength">-1</div>
+      <button class="btn btn-primary" onclick="decreaseLength()">-</button>
+      <button class="btn btn-primary" onclick="increaseLength()">+</button>
+    </div>
+  </div>
+  <h4 class="infos-header">Merge Person IDs</h4>
+  <div class="row">
+    <div class="col-sm-6">
+      <label for="personID1">Person ID 1:</label>
+      <input type="text" class="form-control" id="personID1" placeholder="Enter ID 1">
+    </div>
+    <div class="col-sm-6">
+      <label for="personID2">Person ID 2:</label>
+      <input type="text" class="form-control" id="personID2" placeholder="Enter ID 2">
+    </div>
+  </div>
+  <div class="row mt-2">
+    <div class="col-sm-12">
+      <button class="btn btn-sm btn-primary" onclick="mergeIDs()">Merge IDs</button>
+    </div>
+
 </div>
 </div>
-  <div class="col-sm-12">
-  <label for="pWidth" class="col-sm-5">Person width:</label>
-    <div class="panel col-sm-2" id="pWidth">-1</panel>
-</div>
-</div>
-</div>
+<!-- </div> -->

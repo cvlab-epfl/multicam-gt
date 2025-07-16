@@ -13,13 +13,46 @@
       </div>
       <div class="modal-body col-sm-12">
         <ul class="nav nav-tabs" id="tabContent">
-          <li class="active"><a href="#task_h" data-toggle="tab">Task description</a></li>
-          <li><a href="#keys_h" onclick="tab1()" data-toggle="tab">Keyboard shortcuts</a></li>
+          <li class="active"><a href="#keys_h" onclick="tab1()" data-toggle="tab">Keyboard shortcuts</a></li>
+          <li ><a href="#task_h" data-toggle="tab">Task description</a></li>
           <li><a href="#ex1_h" onclick="tab2()"  data-toggle="tab">Example 1</a></li>
           <li><a href="#ex2_h" onclick="tab3()"  data-toggle="tab">Example 2</a></li>
         </ul>
         <div class="tab-content">
-          <div class="tab-pane active" id="task_h">
+          <div class="tab-pane active" id="keys_h">
+            <center>
+            <br>
+            <p><strong><kbd>Left click</kbd></strong><small> (on the <kbd style="color:red">red</kbd> cuboid base circle) </small><strong>:</strong><small> select/drag a bounding box.</small></p>
+            <p><strong><kbd>Left click</kbd></strong><small> (on the <kbd style="color:green">green</kbd> bottom bbox circle) </small><strong>:</strong><small> select a bounding box.</small></p>
+            <p><strong><kbd>Right click</kbd></strong><small> (on an image) </small><strong>:</strong><small> place a bounding box.</small></p>
+
+            <p><strong><kbd>Arrow keys</kbd></strong> : <small>move the selected bounding box.</small></p>
+            <p><strong><kbd>w/a/s/d</kbd></strong> : <small>move the selected bounding box.</small></p>
+            <p><strong><kbd>q/e</kbd></strong> : <small>rotate CCW/CW.</small></p>
+
+            <p><strong><kbd>u/o</kbd></strong> : <small>increase/decrease length</small></p>
+            <p><strong><kbd>j/l</kbd></strong> : <small>increase/decrease width</small></p>
+            <p><strong><kbd>i/k</kbd></strong> : <small>increase/decrease height</small></p>
+
+            <p><strong><kbd>Backspace</kbd></strong> : <small>remove the selected bounding box.</small></p>
+            <p><strong><kbd>Space</kbd></strong> / <strong><kbd>Tab</kbd></strong> : <small>select the next/previous the bounding box.</small></p>
+            <p><strong><kbd>v</kbd></strong> : <small>validate the placement of a <kbd style="color:yellow">yellow</kbd> bounding box.</small></p>
+            <p><strong><kbd>z</kbd></strong> : <small>zoom on the selected bounding box (press again to zoom out).</small></p>
+            <p><strong><kbd>c</kbd></strong> : <small>hide/show cuboids.</small></p>
+            <p><strong><kbd>h</kbd></strong> : <small>hide/show not selected annotations.</small></p>
+
+            <p><strong><kbd>n/m</kbd></strong> : <small>prev/next frame.</small></p>
+
+
+            <p><strong><kbd>b</kbd></strong> : <small>hide/show the orientation helper.</small></p>
+            <p><strong><kbd>g</kbd></strong> : <small>hide/show the ground area limits.</small></p>
+            <p><strong><kbd style="color:cyan">Cyan</kbd> box</strong> : selected bounding box</p>
+            <p><strong><kbd>White</kbd> box</strong> : standard bounding box</p>
+            <p><strong><kbd style="color:yellow">Yellow</kbd> box</strong> : Unvalidated bounding box</p>
+            <p class="text-danger">The bounding box should surround the person on all images it appears. (see Example 1 tab)</p>
+            </center>
+          </div>
+          <div class="tab-pane " id="task_h">
             <h3>Your task</h3>
             <p style="text-align: justify;">As previously mentionned, you will be asked to label images, i.e. to place bounding boxes around people. <br><br>You will see 7 images at the same time which corresponds to multiple views of a scene.
               Try to put bounding boxes around all the people you can (some of them are not in the ground area, don't worry about them).
@@ -33,23 +66,7 @@
             <center><small>Note: Since accuracy is very important, do not hesitate to use the <kbd>z</kbd> key to zoom on the selected bounding box.</small></center>
           </div>
 
-          <div class="tab-pane" id="keys_h">
-            <center>
-            <br>
-            <p><strong><kbd>Left click</kbd></strong><small> (on an image) </small><strong>:</strong><small> place a bounding box.</small></p>
-            <p><strong><kbd>Arrows</kbd></strong> : <small>move the selected bounding box.</small></p>
-            <p><strong><kbd>z</kbd></strong> : <small>zoom on the selected bounding box (press again to zoom out).</small></p>
-            <p><strong><kbd>Backspace</kbd></strong> : <small>remove the selected bounding box.</small></p>
-            <p><strong><kbd>Space</kbd></strong> / <strong><kbd>Tab</kbd></strong> : <small>select the next/previous the bounding box.</small></p>
-            <p><strong><kbd>e</kbd></strong> : <small>validate the placement of a <kbd style="color:yellow">yellow</kbd> bounding box.</small></p>
-            <p><strong><kbd>h</kbd></strong> : <small>hide/show the orientation helper.</small></p>
-            <p><strong><kbd>t</kbd></strong> : <small>hide/show the ground area limits.</small></p>
-            <p><strong><kbd style="color:cyan">Cyan</kbd> box</strong> : selected bounding box</p>
-            <p><strong><kbd>White</kbd> box</strong> : standard bounding box</p>
-            <p><strong><kbd style="color:yellow">Yellow</kbd> box</strong> : Unvalidated bounding box</p>
-            <p class="text-danger">The bounding box should surround the person on all images it appears. (see Example 1 tab)</p>
-            </center>
-          </div>
+          
 
           <div class="tab-pane" id="ex1_h">
             <br>

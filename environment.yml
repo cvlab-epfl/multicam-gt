@@ -1,0 +1,33 @@
+
+name: multicam-gt_env
+channels:
+  - conda-forge  
+  - defaults
+dependencies:
+  - python=3.8
+  - cmake
+  - make
+  - build
+  - postgresql
+  - setuptools
+  - wheel
+  - pip
+  - trimesh
+  - pyembree
+  - embree
+  - pip:
+      - Django
+      - ipdb
+      - numpy
+      - opencv_python
+      - Pillow
+      - django-bootstrap-form
+      - psycopg2-binary
+      - protobuf
+      - shapely
+      - tqdm
+      - matplotlib
+      - onnxruntime
+      - networkx
+      - rtmlib
+

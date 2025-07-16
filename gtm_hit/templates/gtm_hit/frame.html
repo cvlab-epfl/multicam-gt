@@ -1,65 +1,147 @@
 {% load static %}
 {% load gtm_hit_extra %}
+{% include 'includes_hit/controller.html' %}
 
 <html>
+
 <head>
   <meta charset="utf-8">
-  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"/>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
-  <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
-  <script src="http://code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/jquery@1.12.2/dist/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.6/dist/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery-ui@1.11.4/jquery-ui.min.js"></script>
   <script src="{% static 'gtm_hit/jquery.hotkeys.js' %}"></script>
-  <script src="{% static 'gtm_hit/marker.js' %}"></script>
-  <link rel="stylesheet" type="text/css" href="{% static 'gtm_hit/frame.css' %}" />
 
   <script type="text/javascript">
-  var frame_number = "{{frame_number}}";
-  var workerID = "{{workerID}}";
-  var frame_str = Array(9 - frame_number.toString().length).join('0') + frame_number;
-  var path = "{{path}}";
-  var cams = "{{cams|safe}}";
-  var nblabeled = "{{nblabeled}}";
+    var frame_number = "{{frame_number}}";
+    var workerID = "{{workerID}}";
+    var frame_strs =  {{ frame_strs|safe }};
+    var cameraPaths = {{ cams|safe }};
+    var frame_str = Array(9 - frame_number.toString().length).join('0') + frame_number;
+    // var cams = "{{cams|safe}}";
+    var nb_cams = "{{nb_cams}}"
+    var nblabeled = "{{nblabeled}}";
+    var frame_inc = "{{frame_inc}}";
+    var dset_name = "{{dset_name}}";
+    var frame_size = "{{frame_size}}";
+    var useUndistorted = "{{undistort}}";
+    frame_size = frame_size.substring(1, frame_size.length - 1).split(",");
   </script>
+  <script src="{% static 'gtm_hit/marker.js' %}?v=2"></script>
+
+  <script src="{% static 'gtm_hit/timeview.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'gtm_hit/framestyle.css' %}">
+  
 </head>
+
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    const container = document.getElementById('cameraContainer');
+    cameraPaths.forEach((camName, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'camera-wrapper';
+      
+      const label = document.createElement('div');
+      label.className = 'camera-label';
+      label.textContent = camName;
+      
+      const canvas = document.createElement('canvas');
+      canvas.id = `canv${camName}`;
+      canvas.width = 1920;
+      canvas.height = 1080;
+      canvas.dataset.toggle = "tooltip";
+      canvas.title = `Camera ${camName}`;
+      canvas.className = "img";
+      canvas.style.padding = "0";
+      
+      wrapper.appendChild(label);
+      wrapper.appendChild(canvas);
+      container.appendChild(wrapper);
+    });
+  });
+</script>
+
+
 <body>
   {% include "includes_hit/navbar.html" %}
 
   {% csrf_token %}
-
+  
   <div class="container-fluid">
-    <ul class="row" id="my-row">
-      <div class="col-sm-12">
-        <div id="loader"><div class="loadersmall pull-left"></div>
-        <strong class="pull-left" style="color:grey;margin-top:5px;margin-left:10px;">Loading ... please wait until this text disappear</strong></div>
-        <ul class="pull-right">
-          <strong id="frameID">Frame ID: {{frame_number}}&nbsp;&nbsp;</strong>
-          <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('next',5)">Next frame</a>
-        </ul>
-
-      </div>
-    </ul>
-    <div class="row col-sm-12">
-
-      <ul class="row" id="ul1">
-        <canvas id='canv1' width="1920" height="1080" data-toggle="tooltip" title="Camera 1" class="img col-sm-4"></canvas>
-        <canvas id='canv2' width="1920" height="1080" data-toggle="tooltip" title="Camera 2" class="img col-sm-4"></canvas>
-        <canvas id='canv3' width="1920" height="1080" data-toggle="tooltip" title="Camera 3" class="img col-sm-4"></canvas>
-      </ul>
-      <ul class="row" id="ul2">
-        <canvas id='canv4' width="1920" height="1080" data-toggle="tooltip" title="Camera 4" class="img col-sm-4"></canvas>
-        <canvas id='canv5' width="1920" height="1080" data-toggle="tooltip" title="Camera 5" class="img col-sm-4"></canvas>
-        <canvas id='canv6' width="1920" height="1080" data-toggle="tooltip" title="Camera 6" class="img col-sm-4"></canvas>
-      </ul>
     </div>
-    <div class="row col-sm-12">
-      <ul class="row" id="ul3">
-        <canvas id='canv7' width="1920" height="1080" data-toggle="tooltip" title="Camera 7" class="img col-sm-4"></canvas>
-        <div class="col-sm-4"> {% include "includes_hit/side_menu.html" %}</div>
-        <div class="col-sm-4"> {% include "includes_hit/controller.html" %}</div>
-      </ul>
-    </div>
+      <div style="margin-bottom:10px;">
+        <div class="row pb-2" id="my-row">
+          <div class="col-sm-12">
+            <div class="btn-group" role="group">
+              
+              <button class="btn btn-success" onclick="save();">Save</button>
+              <button class="btn btn-info" onclick="load();">Load</button>
+              <button class="btn btn-warning" onclick="load_prev();">Load Previous</button>
+
+
+              <button class="btn btn-danger" onclick="clean();">Clear all</button>
+              <button class="btn " data-toggle="modal" data-target="#myModal">Help</button>
+
+              <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">
+                Other<span class="caret"></span>
+              </button>
+            
+              <ul class="dropdown-menu">
+                <li><a href="#" data-toggle="modal" data-target="#loadModal">Load from File</a></li>
+                <li><a href="#" onclick="createVideo()">Create video</a></li>
+                <li><a href="#" onclick="removeCompleteFlags()">Remove All Annotation Complete Flags</a></li>
+
+
+              </ul>
+              
+              <button class="btn toggle-menu-btn" onclick="toggleMenu()">Show Menu</button>
+              <button id="merge-boxes" class="btn toolbar-button" disabled>
+                <i class="fas fa-object-group"></i> Merge
+              </button>
+              
+              
+            </div>
+            <div class="btn-group" role="group">
+              <button type="button" class="btn dropdown-toggle" data-toggle="dropdown">
+                  Manage Cameras <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" id="cameraMenu">
+                  <!-- Camera menu items -->
+              </ul>
+            </div>
+            
+          
+            <a href="#" id="copyBtn" class="btn btn-primary" onclick="copyPrevOrNext()">Copy Prev/Next</a>
+            <div class="pull-right">
+              <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('prev', 12000)">0</a>
+              <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('prev',frame_inc*10)">&lt;&lt;</a>
+              <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('prev',frame_inc)">&lt;</a>
+
+              <strong id="frameID">Frame ID: {{frame_number}}&nbsp;&nbsp;</strong>
+              <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('next',frame_inc)">&gt;</a>
+              <a href="#" id="changeF" class="btn btn-primary" onclick="changeFrame('next',frame_inc*10)">&gt;&gt;</a>
+
+            </div>
+            <p id="unsaved" class="pull-right" style="color:grey; padding-right: 10px;">Unsaved changes</p>
+          </div>
+        </div>
+      </div>      
   </div>
-  {% include "includes_hit/footer.html" %}
+
+  </ul>
+  <div id="cameraContainer" class="canvas-grid">
+  </div>
+
+  </div>
+  
+  <div id="loader">
+    <strong class="pull-left" style="color:grey;margin-top:5px;margin-left:10px;">Loading ... please wait until
+      this text disappear</strong>
+  </div>
+  {% include "includes_hit/timeview.html" %}
+
 </body>
 
 </html>

@@ -1,0 +1,132 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+/* .canvas-grid {
+  display: grid;
+  gap: 5px;
+  padding: 5px;
+  width: 100vw;
+  height: 100vh;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  box-sizing: border-box;
+}
+
+.camera-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.camera-wrapper canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+} */
+/* 
+.canvas-grid {
+  display: grid;
+  gap: 5px;
+  padding: 5px;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(calc((100vw - 20px)/2), 1fr));
+  box-sizing: border-box;
+}
+
+.camera-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+}
+
+.camera-wrapper canvas {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+} */
+
+.canvas-grid {
+  display: grid;
+  gap: 5px;
+  padding: 5px;
+  width: 100%;
+  height: 100%;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* Flexible, responsive columns */
+  box-sizing: border-box;
+}
+
+.camera-wrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+}
+
+.camera-wrapper canvas {
+  width: 100%;
+  height: 100%;
+  /* Removed object-fit since it doesn't affect canvas */
+}
+
+
+
+.camera-label {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 5px;
+    border-radius: 3px;
+    z-index: 1;
+}
+
+  
+/* 
+  .canvas-grid {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+.canvas-grid canvas {
+    width: 100%;
+    height: auto;
+    cursor: move;
+} */
+
+
+.camera-crop-container {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+}
+
+.crop-wrapper {
+  display: inline-block;
+  margin: 5px;
+  text-align: center;
+}
+
+.frame-label {
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.selected-for-merge {
+  border: 2px solid yellow !important;
+}
+
+.fixed-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: white;
+  z-index: 1000;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}

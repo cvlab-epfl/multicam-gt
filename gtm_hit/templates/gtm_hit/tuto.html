@@ -129,7 +129,7 @@
               <hr class="intro-divider">
               <ul class="list-inline">
                 <li>
-                  <a href="/gtm_hit/{{workerID}}/processTuto" id="btnStart" class="btn btn-primary btn-lg button-name">Start</a>
+                  <a href="/gtm_hit/{{dset_name}}/{{workerID}}/processTuto" id="btnStart" class="btn btn-primary btn-lg button-name">Start</a>
                 </li>
               </ul>
             </div>
@@ -140,7 +140,7 @@
 
     </div>
     {% include "includes_hit/footer.html" %}
-
+    {% include "includes/load.html" %}
   </body>
 
   </html>

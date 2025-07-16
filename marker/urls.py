@@ -1,4 +1,4 @@
-from django.conf.urls import url
+from django.urls import re_path as url
 
 from . import views
 
@@ -10,7 +10,7 @@ urlpatterns = [
     url(r'^downloadwk$',views.download_worker,name='downloadwk'),
     url(r'^.*click',views.click,name="click"),
     url(r'^.*move',views.move,name="move"),
-    url(r'^.*changeframe$', views.changeframe, name='changeframe'),
+    # url(r'^.*changeframe$', views.changeframe, name='changeframe'),
     url(r'^.*save$',views.save,name='save'),
     url(r'^.*load$',views.load,name='load'),
     url(r'^.*loadfile$',views.loadfile,name='loadfile'),

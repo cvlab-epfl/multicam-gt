@@ -1,0 +1,27 @@
+<style>
+    #crops-container {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  .crop-image {
+    display: inline-block;
+    vertical-align: middle;
+  }
+</style>
+<p></p>
+<script>
+function hideCrops() {
+    document.getElementById("crops-container").style.display = "none";
+};
+</script>
+<div class="container" id="crops-container">
+    <button id="close-button" style="position: absolute; top: 0; right: 0;" onclick="hideCrops()">Close</button>
+</div>
+

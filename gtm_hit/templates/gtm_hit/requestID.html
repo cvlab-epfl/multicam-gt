@@ -20,14 +20,15 @@
                        <h1>Ground truth marker</h1>
                        <hr class="intro-divider">
                        <h3>No Worker ID detected</h3>
-                       <p>Please enter your amazon mechanical turk worker ID. This will allow us to pay you after the completion of the HIT</p>
-                      <p>If you do not come from amazon mechanical turk, enter any ID you want</p>
+                       <p>Please enter your worker ID and dataset name.</p>
                       <hr class="intro-divider">
                       <form action="" method="post">
                         {% csrf_token %}
                         <div class="form-group">
                           <label for="wID">Worker ID: </label>
                           <input id="wID" class="well-sm" type="text" name="wID" value="{{ workerID }}"><br>
+                          <label for="datasetName">Dataset Name: </label>
+                          <input id="datasetName" class="well-sm" type="text" name="datasetName" value="{{ datasetName }}"><br>
                         </div>
                         <button class="btn btn-primary" type="submit">Done</button>
                       </form>
