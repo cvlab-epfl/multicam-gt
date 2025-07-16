@@ -203,6 +203,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 import trimesh
+try:
+    from trimesh.ray.ray_pyembree import RayMeshIntersector
+    print("Fast ray intersection active.")
+except:
+    print("Install pyembree for faster mesh intersections.")
 
 MESH = trimesh.load(MESHPATH, process=False, maintain_order=True, ignore_missing_files=True)
 if hasattr(MESH, 'visual'):

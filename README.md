@@ -35,6 +35,7 @@ You can then run the following commands to run the application:
 ```bash
 conda env create -n ENVNAME --file ENV.yml
 pip install -r requirements.txt
+conda install postgresql
 initdb -D scout   
 chmod -R 700 scout
 pg_ctl -D scout -l logfile start

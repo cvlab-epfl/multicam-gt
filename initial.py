@@ -75,5 +75,10 @@ def main():
     dest_roi.parent.mkdir(parents=True, exist_ok=True)
     safe_symlink(src_roi, dest_roi)
 
+    src_annotation = SYMLINK_BASE / 'annotations' / 'raw' / f'annotations_sequence_{args.sequence}_raw.json'
+    dest_annotation = (DSETPATH / 'annotation' / 'annotations.json')
+    dest_annotation.parent.mkdir(parents=True, exist_ok=True)
+    safe_symlink(src_annotation, dest_annotation)
+
 if __name__ == '__main__':
     main()

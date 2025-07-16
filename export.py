@@ -94,8 +94,8 @@ def export(dataset:Dataset, worker:Worker, output:str, sequence:str = 'sequence_
                             // Add other necessary parameters like rotation_pitch, rotation_roll if applicable
                         },
                         “projections_2d”: {
-                            "cvlabrpi1": [100, 150, 50, 75], # x1, y1, x2, y2
-                            "cvlabrpi1": [200, 180, 60, 80]
+                            "cam_0": [100, 150, 50, 75], # x1, y1, x2, y2
+                            "cam_1": [200, 180, 60, 80]
                             // ... for all 26 cameras
                         }
                         },

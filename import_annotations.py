@@ -28,12 +28,19 @@ def create_dataset_for_worker(tracks_path: Path,
                           dataset_name: str,
                           range_start: int = 0, 
                           range_end: int = 12000, 
-                          testing:bool = True
+                          testing:bool = False,
+                          interval:int = 10
                           ):
     
     # Load tracks data
     with open(tracks_path, 'rb') as f:
         tracks_data = json.load(f)
+
+    # Filter frames by interval
+    tracks_data['frames'] = [
+        frame for frame in tracks_data['frames']
+        if frame['frame_id'] % interval == 0
+    ]
 
     # Create worker and dataset
     worker, _ = Worker.objects.get_or_create(workerID=worker_id)
@@ -184,7 +191,7 @@ def create_dataset_for_worker(tracks_path: Path,
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dataset', type=str, default='SCOUT')
-    parser.add_argument('--worker', type=str, default='TESTING')
+    parser.add_argument('--worker', type=str, default='CVLAB')
     parser.add_argument('--input', type=str, required=True, help = 'Root directory of target dataset json to import')
 
     args = parser.parse_args()

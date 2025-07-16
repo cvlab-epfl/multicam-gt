@@ -1157,7 +1157,7 @@ def serve_frame(request):
         camera_name = int(request.POST['camera_name'])
 
         camera_name = settings.CAMS[camera_name]
-        filepath = Path(static(f'gtm_hit/dset/{settings.DSETNAME}/frames/{camera_name}/image_{frame_number}.jpg'))
+        filepath = Path(static(f'gtm_hit/dset/{settings.DSETNAME}/frames/{camera_name}/image_{frame_number}.jpg')).resolve()
         # settings.FRAMES / f'{camera_name}' / f'image_{frame_number}.jpg'
         if filepath.is_file():
             response = {
